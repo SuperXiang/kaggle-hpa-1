@@ -61,7 +61,7 @@ class TestData:
     def __init__(self, data_dir):
         start_time = time.time()
 
-        self.test_set_df = pd.read_csv("{}/sample_submission.csv".format(data_dir), index_col="Id", usecols="Id")
+        self.test_set_df = pd.read_csv("{}/sample_submission.csv".format(data_dir), index_col="Id", usecols=["Id"])
 
         end_time = time.time()
         log("Time to prepare test data: {}".format(str(datetime.timedelta(seconds=end_time - start_time))))

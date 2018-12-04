@@ -17,3 +17,4 @@
 * normalize different channels separately
 * any predictions with no label? if not, handle this when predicting
 * split image e.g. into 2x2 subimages, train/predict independently, combine predictions
+* make sure that the number of predictions is within [1,x], where x is the max number of targets in the train data
