@@ -18,7 +18,7 @@ class TrainData:
         df = pd.read_csv(
             "{}/train.csv".format(data_dir),
             index_col="Id",
-            converters={"Target": lambda target: map(int, str(target).split(" "))}
+            converters={"Target": lambda target: list(map(int, str(target).split(" ")))}
         )
 
         train_set_ids, val_set_ids = train_test_split(df.index, test_size=0.2, random_state=42)
@@ -43,18 +43,18 @@ class TrainDataset(Dataset):
 
     def __getitem__(self, index):
         id = self.df.index[index]
-        categories = self.df.Target[index]
+        categories = self.df.iloc[index].Target
 
         image = load_image(self.data_dir + "/train", id, self.image_size)
 
-        image = image_to_tensor(image)
-        categories = categories_to_tensor(categories, self.num_categories)
+        image_t = image_to_tensor(image)
+        categories_t = categories_to_tensor(categories, self.num_categories)
 
-        assert categories.sum() > 0, "image has no targets: {}".format(id)
+        assert categories_t.sum() > 0, "image has no targets: {} -> {}".format(id, categories)
 
         # image = normalize(image, (0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
 
-        return image, categories
+        return image_t, categories_t
 
 
 def load_image(base_dir, id, image_size):
