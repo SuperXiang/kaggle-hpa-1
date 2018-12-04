@@ -384,7 +384,7 @@ def main():
 
     submission_df = test_data.test_set_df.copy()
     predicted = predict(model, test_set_data_loader)
-    submission_df["Predicted"] = [" ".join(p) for p in predicted]
+    submission_df["Predicted"] = [" ".join(map(str, p)) for p in predicted]
     submission_df.to_csv("{}/submission.csv".format(output_dir))
 
 

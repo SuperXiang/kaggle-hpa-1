@@ -7,6 +7,7 @@
 * https://github.com/wdhorton/protein-atlas-fastai
 * model distillation (e.g. nasnet & nasnet-mobile) -> https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/67604#413479
 * f1_loss: https://www.kaggle.com/manyfoldcv/an-end-to-end-starter-kit-in-pytorch-xception/notebook
+* https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/68678
 
 
 ### Ideas
