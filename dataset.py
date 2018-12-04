@@ -52,7 +52,7 @@ class TrainDataset(Dataset):
 
         # image = normalize(image, (0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
 
-        assert categories.sum() > 0
+        assert categories.sum() > 0, "oops: {}".format(id)
 
         return image, categories
 
