@@ -17,7 +17,7 @@ from torch.optim.lr_scheduler import CosineAnnealingLR, ReduceLROnPlateau
 from torch.utils.data import DataLoader
 
 from dataset import TrainDataset, TrainData, TestData, TestDataset
-from metrics import FocalLoss, f1score
+from metrics import FocalLoss, f1score, f1score_from_probs
 from models import ResNet, Ensemble, SimpleCnn
 from utils import get_learning_rate, str2bool, adjust_learning_rate, adjust_initial_learning_rate, \
     list_sorted_model_files, check_model_improved, log_args, log
@@ -92,14 +92,17 @@ def create_optimizer(type, model, lr):
 def predict(model, data_loader):
     model.eval()
 
-    predicted_categories = []
+    all_predictions = []
+    all_targets = []
     with torch.no_grad():
         for batch in data_loader:
             images = batch[0].to(device, non_blocking=True)
             predictions = torch.sigmoid(model(images)).cpu().data.numpy()
-            predicted_categories.extend([np.squeeze(np.argwhere(p > 0.5), axis=1) for p in predictions])
+            all_predictions.extend(predictions)
+            if len(batch) > 1:
+                all_targets.extend(batch[1].cpu().data.numpy())
 
-    return predicted_categories
+    return all_predictions, all_targets
 
 
 def load_ensemble_model(base_dir, ensemble_model_count, data_loader, criterion, model_type, input_size, num_classes):
@@ -127,6 +130,22 @@ def load_ensemble_model(base_dir, ensemble_model_count, data_loader, criterion, 
     log("ensemble: val_loss=%.4f, val_score=%.4f" % (val_loss_avg, val_score_avg))
 
     return ensemble
+
+
+def calculate_categories_from_predictions(predictions, threshold):
+    return [np.squeeze(np.argwhere(p > threshold), axis=1) for p in predictions]
+
+
+def calculate_best_threshold(predictions, targets):
+    predictions_t = torch.tensor(predictions)
+    targets_t = torch.tensor(targets)
+
+    thresholds = np.linspace(0, 1, 51)
+    scores = [f1score_from_probs(predictions_t, targets_t, threshold=t) for t in thresholds]
+
+    best_score_index = np.argmax(scores)
+
+    return thresholds[best_score_index], scores[best_score_index]
 
 
 def main():
@@ -377,14 +396,18 @@ def main():
 
     model.load_state_dict(torch.load("{}/model.pth".format(output_dir), map_location=device))
 
+    val_predictions, val_targets = predict(model, val_set_data_loader)
+    best_threshold, best_score = calculate_best_threshold(val_predictions, val_targets)
+    log("Best threshold / score: {} / {}".format(best_threshold, best_score))
+
     test_data = TestData(input_dir)
     test_set = TestDataset(test_data.test_set_df, input_dir, image_size)
     test_set_data_loader = \
         DataLoader(test_set, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=pin_memory)
 
     submission_df = test_data.test_set_df.copy()
-    predicted = predict(model, test_set_data_loader)
-    submission_df["Predicted"] = [" ".join(map(str, p)) for p in predicted]
+    test_predictions, _ = predict(model, test_set_data_loader)
+    submission_df["Predicted"] = calculate_categories_from_predictions(test_predictions, threshold=best_threshold)
     submission_df.to_csv("{}/submission.csv".format(output_dir))
 
 

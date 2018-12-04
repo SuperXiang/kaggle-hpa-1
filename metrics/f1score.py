@@ -3,7 +3,10 @@ import torch
 
 def f1score(prediction_logits, targets, threshold=0.5, epsilon=1e-7):
     predictions = torch.sigmoid(prediction_logits)
+    return f1score_from_probs(predictions, targets, threshold, epsilon)
 
+
+def f1score_from_probs(predictions, targets, threshold=0.5, epsilon=1e-7):
     positives = (predictions > threshold).float()
     true_positives = positives * targets
 
