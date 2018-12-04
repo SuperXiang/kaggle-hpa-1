@@ -31,11 +31,12 @@ class TrainData:
 
 
 class TrainDataset(Dataset):
-    def __init__(self, df, data_dir, num_categories):
+    def __init__(self, df, data_dir, num_categories, image_size):
         super().__init__()
         self.df = df
         self.data_dir = data_dir
         self.num_categories = num_categories
+        self.image_size = image_size
 
     def __len__(self):
         return len(self.df)
@@ -44,7 +45,7 @@ class TrainDataset(Dataset):
         id = self.df.index[index]
         categories = self.df.Target[index]
 
-        image = load_image(self.data_dir + "/train", id)
+        image = load_image(self.data_dir + "/train", id, self.image_size)
 
         image = image_to_tensor(image)
         categories = categories_to_tensor(categories, self.num_categories)
@@ -54,12 +55,17 @@ class TrainDataset(Dataset):
         return image, categories
 
 
-def load_image(base_dir, id):
-    r = cv2.imread("{}/{}_red.png".format(base_dir, id), 0)
-    g = cv2.imread("{}/{}_green.png".format(base_dir, id), 0)
-    b = cv2.imread("{}/{}_blue.png".format(base_dir, id), 0)
-    y = cv2.imread("{}/{}_yellow.png".format(base_dir, id), 0)
+def load_image(base_dir, id, image_size):
+    r = load_image_channel("{}/{}_red.png".format(base_dir, id), image_size)
+    g = load_image_channel("{}/{}_green.png".format(base_dir, id), image_size)
+    b = load_image_channel("{}/{}_blue.png".format(base_dir, id), image_size)
+    y = load_image_channel("{}/{}_yellow.png".format(base_dir, id), image_size)
     return np.stack([r, g, b, y], axis=0)
+
+
+def load_image_channel(file_path, image_size):
+    channel = cv2.imread(file_path, 0)
+    return cv2.resize(channel, (image_size, image_size), interpolation=cv2.INTER_AREA)
 
 
 def image_to_tensor(image):

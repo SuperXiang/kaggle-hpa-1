@@ -181,12 +181,12 @@ def main():
 
     train_data = TrainData(input_dir)
 
-    train_set = TrainDataset(train_data.train_set_df, input_dir, 28)
+    train_set = TrainDataset(train_data.train_set_df, input_dir, 28, image_size)
     train_set_data_loader = \
         DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=num_workers,
                    pin_memory=pin_memory)
 
-    val_set = TrainDataset(train_data.val_set_df, input_dir, 28)
+    val_set = TrainDataset(train_data.val_set_df, input_dir, 28, image_size)
     val_set_data_loader = \
         DataLoader(val_set, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=pin_memory)
 
@@ -395,7 +395,7 @@ if __name__ == "__main__":
     argparser.add_argument("--input_dir", default="/storage/kaggle/hpa")
     argparser.add_argument("--output_dir", default="/artifacts")
     argparser.add_argument("--base_model_dir", default=None)
-    argparser.add_argument("--image_size", default=512, type=int)
+    argparser.add_argument("--image_size", default=128, type=int)
     argparser.add_argument("--augment", default=False, type=str2bool)
     argparser.add_argument("--use_progressive_image_sizes", default=False, type=str2bool)
     argparser.add_argument("--progressive_image_size_min", default=32, type=int)
