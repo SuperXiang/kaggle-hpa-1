@@ -15,3 +15,5 @@
 * learn from training samples which have only 1 label
 * use thresholds which achieve a similar per-class distribution of the different proteins as in the validation set
 * normalize different channels separately
+* any predictions with no label? if not, handle this when predicting
+* split image e.g. into 2x2 subimages, train/predict independently, combine predictions

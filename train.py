@@ -18,7 +18,7 @@ from torch.optim.lr_scheduler import CosineAnnealingLR, ReduceLROnPlateau
 from torch.utils.data import DataLoader
 
 from dataset import TrainDataset, TrainData
-from metrics import FocalLoss
+from metrics import FocalLoss, f1score
 from models import ResNet, Ensemble, SimpleCnn
 from utils import get_learning_rate, str2bool, adjust_learning_rate, adjust_initial_learning_rate, \
     list_sorted_model_files, check_model_improved, log_args, log
@@ -48,7 +48,7 @@ def evaluate(model, data_loader, criterion):
     model.eval()
 
     loss_sum_t = zero_item_tensor()
-    mapk_sum_t = zero_item_tensor()
+    score_sum_t = zero_item_tensor()
     step_count = 0
 
     with torch.no_grad():
@@ -61,14 +61,14 @@ def evaluate(model, data_loader, criterion):
             loss = criterion(prediction_logits, categories)
 
             loss_sum_t += loss
-            mapk_sum_t += loss
+            score_sum_t += f1score(prediction_logits, categories)
 
             step_count += 1
 
     loss_avg = loss_sum_t.item() / step_count
-    mapk_avg = mapk_sum_t.item() / step_count
+    score_avg = score_sum_t.item() / step_count
 
-    return loss_avg, mapk_avg
+    return loss_avg, score_avg
 
 
 def create_criterion(loss_type):
@@ -127,18 +127,18 @@ def load_ensemble_model(base_dir, ensemble_model_count, data_loader, criterion, 
         model = create_model(type=model_type, input_size=input_size, num_classes=num_classes).to(device)
         model.load_state_dict(torch.load(model_file_path, map_location=device))
 
-        val_loss_avg, val_mapk_avg = evaluate(model, data_loader, criterion)
-        log("ensemble '%s': val_loss=%.4f, val_mapk=%.4f" % (model_file_name, val_loss_avg, val_mapk_avg))
+        val_loss_avg, val_score_avg = evaluate(model, data_loader, criterion)
+        log("ensemble '%s': val_loss=%.4f, val_score=%.4f" % (model_file_name, val_loss_avg, val_score_avg))
 
-        if len(score_to_model) < ensemble_model_count or min(score_to_model.keys()) < val_mapk_avg:
+        if len(score_to_model) < ensemble_model_count or min(score_to_model.keys()) < val_score_avg:
             if len(score_to_model) >= ensemble_model_count:
                 del score_to_model[min(score_to_model.keys())]
-            score_to_model[val_mapk_avg] = model
+            score_to_model[val_score_avg] = model
 
     ensemble = Ensemble(list(score_to_model.values()))
 
-    val_loss_avg, val_mapk_avg = evaluate(ensemble, data_loader, criterion)
-    log("ensemble: val_loss=%.4f, val_mapk=%.4f" % (val_loss_avg, val_mapk_avg))
+    val_loss_avg, val_score_avg = evaluate(ensemble, data_loader, criterion)
+    log("ensemble: val_loss=%.4f, val_score=%.4f" % (val_loss_avg, val_score_avg))
 
     return ensemble
 
@@ -217,8 +217,8 @@ def main():
     log("train_set_samples: {}, val_set_samples: {}".format(len(train_set), len(val_set)))
     log()
 
-    global_val_mapk_best_avg = float("-inf")
-    sgdr_cycle_val_mapk_best_avg = float("-inf")
+    global_val_score_best_avg = float("-inf")
+    sgdr_cycle_val_score_best_avg = float("-inf")
 
     lr_scheduler = CosineAnnealingLR(optimizer, T_max=sgdr_cycle_epochs, eta_min=lr_min)
 
@@ -236,11 +236,11 @@ def main():
     lr_scheduler_plateau = \
         ReduceLROnPlateau(optimizer, mode="max", min_lr=lr_min, patience=lr_patience, factor=0.8, threshold=1e-4)
 
-    log('{"chart": "best_val_mapk", "axis": "epoch"}')
-    log('{"chart": "val_mapk", "axis": "epoch"}')
+    log('{"chart": "best_val_score", "axis": "epoch"}')
+    log('{"chart": "val_score", "axis": "epoch"}')
     log('{"chart": "val_loss", "axis": "epoch"}')
     log('{"chart": "sgdr_cycle", "axis": "epoch"}')
-    log('{"chart": "mapk", "axis": "epoch"}')
+    log('{"chart": "score", "axis": "epoch"}')
     log('{"chart": "loss", "axis": "epoch"}')
     log('{"chart": "lr_scaled", "axis": "epoch"}')
     log('{"chart": "mem_used", "axis": "epoch"}')
@@ -267,7 +267,7 @@ def main():
         model.train()
 
         train_loss_sum_t = zero_item_tensor()
-        train_mapk_sum_t = zero_item_tensor()
+        train_score_sum_t = zero_item_tensor()
 
         epoch_batch_iter_count = 0
 
@@ -288,7 +288,7 @@ def main():
 
             with torch.no_grad():
                 train_loss_sum_t += loss
-                train_mapk_sum_t += loss
+                train_score_sum_t += f1score(prediction_logits, categories)
 
             if (b + 1) % batch_iterations == 0 or (b + 1) == len(train_set_data_loader):
                 optimizer.step()
@@ -300,24 +300,24 @@ def main():
             optim_summary_writer.add_scalar("lr", get_learning_rate(optimizer), batch_count + 1)
 
         train_loss_avg = train_loss_sum_t.item() / epoch_batch_iter_count
-        train_mapk_avg = train_mapk_sum_t.item() / epoch_batch_iter_count
+        train_score_avg = train_score_sum_t.item() / epoch_batch_iter_count
 
-        val_loss_avg, val_mapk_avg = evaluate(model, val_set_data_loader, criterion)
+        val_loss_avg, val_score_avg = evaluate(model, val_set_data_loader, criterion)
 
         if lr_scheduler_type == "reduce_on_plateau":
-            lr_scheduler_plateau.step(val_mapk_avg)
+            lr_scheduler_plateau.step(val_score_avg)
 
-        model_improved_within_sgdr_cycle = check_model_improved(sgdr_cycle_val_mapk_best_avg, val_mapk_avg)
+        model_improved_within_sgdr_cycle = check_model_improved(sgdr_cycle_val_score_best_avg, val_score_avg)
         if model_improved_within_sgdr_cycle:
             torch.save(model.state_dict(), "{}/model-{}.pth".format(output_dir, ensemble_model_index))
-            sgdr_cycle_val_mapk_best_avg = val_mapk_avg
+            sgdr_cycle_val_score_best_avg = val_score_avg
 
-        model_improved = check_model_improved(global_val_mapk_best_avg, val_mapk_avg)
+        model_improved = check_model_improved(global_val_score_best_avg, val_score_avg)
         ckpt_saved = False
         if model_improved:
             torch.save(model.state_dict(), "{}/model.pth".format(output_dir))
             torch.save(optimizer.state_dict(), "{}/optimizer.pth".format(output_dir))
-            global_val_mapk_best_avg = val_mapk_avg
+            global_val_score_best_avg = val_score_avg
             epoch_of_last_improval = epoch
             ckpt_saved = True
 
@@ -329,7 +329,7 @@ def main():
             sgdr_next_cycle_end_epoch = epoch + 1 + current_sgdr_cycle_epochs + sgdr_cycle_end_prolongation
 
             ensemble_model_index += 1
-            sgdr_cycle_val_mapk_best_avg = float("-inf")
+            sgdr_cycle_val_score_best_avg = float("-inf")
             sgdr_cycle_count += 1
             sgdr_reset = True
 
@@ -343,9 +343,9 @@ def main():
         optim_summary_writer.add_scalar("sgdr_cycle", sgdr_cycle_count, epoch + 1)
 
         train_summary_writer.add_scalar("loss", train_loss_avg, epoch + 1)
-        train_summary_writer.add_scalar("mapk", train_mapk_avg, epoch + 1)
+        train_summary_writer.add_scalar("score", train_score_avg, epoch + 1)
         val_summary_writer.add_scalar("loss", val_loss_avg, epoch + 1)
-        val_summary_writer.add_scalar("mapk", val_mapk_avg, epoch + 1)
+        val_summary_writer.add_scalar("score", val_score_avg, epoch + 1)
 
         epoch_end_time = time.time()
         epoch_duration_time = epoch_end_time - epoch_start_time
@@ -358,17 +358,17 @@ def main():
                 get_learning_rate(optimizer),
                 train_loss_avg,
                 val_loss_avg,
-                train_mapk_avg,
-                val_mapk_avg,
+                train_score_avg,
+                val_score_avg,
                 int(ckpt_saved),
                 int(sgdr_reset)))
 
-        log('{"chart": "best_val_mapk", "x": %d, "y": %.4f}' % (epoch + 1, global_val_mapk_best_avg))
+        log('{"chart": "best_val_score", "x": %d, "y": %.4f}' % (epoch + 1, global_val_score_best_avg))
         log('{"chart": "val_loss", "x": %d, "y": %.4f}' % (epoch + 1, val_loss_avg))
-        log('{"chart": "val_mapk", "x": %d, "y": %.4f}' % (epoch + 1, val_mapk_avg))
+        log('{"chart": "val_score", "x": %d, "y": %.4f}' % (epoch + 1, val_score_avg))
         log('{"chart": "sgdr_cycle", "x": %d, "y": %d}' % (epoch + 1, sgdr_cycle_count))
         log('{"chart": "loss", "x": %d, "y": %.4f}' % (epoch + 1, train_loss_avg))
-        log('{"chart": "mapk", "x": %d, "y": %.4f}' % (epoch + 1, train_mapk_avg))
+        log('{"chart": "score", "x": %d, "y": %.4f}' % (epoch + 1, train_score_avg))
         log('{"chart": "lr_scaled", "x": %d, "y": %.4f}' % (epoch + 1, 1000 * get_learning_rate(optimizer)))
         log('{"chart": "mem_used", "x": %d, "y": %.2f}' % (epoch + 1, psutil.virtual_memory().used / 2 ** 30))
         log('{"chart": "epoch_time", "x": %d, "y": %d}' % (epoch + 1, epoch_duration_time))
@@ -418,10 +418,10 @@ if __name__ == "__main__":
     argparser.add_argument("--patience", default=5, type=int)
     argparser.add_argument("--optimizer", default="sgd")
     argparser.add_argument("--loss", default="bce")
-    argparser.add_argument("--sgdr_cycle_epochs", default=8, type=int)
+    argparser.add_argument("--sgdr_cycle_epochs", default=5, type=int)
     argparser.add_argument("--sgdr_cycle_epochs_mult", default=1.0, type=float)
     argparser.add_argument("--sgdr_cycle_end_prolongation", default=0, type=int)
-    argparser.add_argument("--sgdr_cycle_end_patience", default=2, type=int)
+    argparser.add_argument("--sgdr_cycle_end_patience", default=0, type=int)
     argparser.add_argument("--max_sgdr_cycles", default=None, type=int)
 
     main()
