@@ -11,13 +11,12 @@ import psutil
 import torch
 import torch.backends.cudnn as cudnn
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 from tensorboardX import SummaryWriter
 from torch.optim.lr_scheduler import CosineAnnealingLR, ReduceLROnPlateau
 from torch.utils.data import DataLoader
 
-from dataset import TrainDataset, TrainData
+from dataset import TrainDataset, TrainData, TestData, TestDataset
 from metrics import FocalLoss, f1score
 from models import ResNet, Ensemble, SimpleCnn
 from utils import get_learning_rate, str2bool, adjust_learning_rate, adjust_initial_learning_rate, \
@@ -90,30 +89,17 @@ def create_optimizer(type, model, lr):
         raise Exception("Unsupported optimizer type: '{}".format(type))
 
 
-def predict(model, data_loader, categories, tta=False):
-    categories = np.array([c.replace(" ", "_") for c in categories])
-
+def predict(model, data_loader):
     model.eval()
 
-    all_predictions = []
-    predicted_words = []
+    predicted_categories = []
     with torch.no_grad():
         for batch in data_loader:
             images = batch[0].to(device, non_blocking=True)
+            predictions = torch.sigmoid(model(images)).cpu().data.numpy()
+            predicted_categories.extend([np.squeeze(np.argwhere(p > 0.5), axis=1) for p in predictions])
 
-            if tta:
-                predictions1 = F.softmax(model(images), dim=1)
-                predictions2 = F.softmax(model(images.flip(3)), dim=1)
-                predictions = 0.5 * (predictions1 + predictions2)
-            else:
-                predictions = F.softmax(model(images), dim=1)
-
-            _, prediction_categories = predictions.topk(3, dim=1, sorted=True)
-
-            all_predictions.extend(predictions.cpu().data.numpy())
-            predicted_words.extend([" ".join(categories[pc.cpu().data.numpy()]) for pc in prediction_categories])
-
-    return all_predictions, predicted_words
+    return predicted_categories
 
 
 def load_ensemble_model(base_dir, ensemble_model_count, data_loader, criterion, model_type, input_size, num_classes):
@@ -388,6 +374,18 @@ def main():
     train_end_time = time.time()
     log()
     log("Train time: %s" % str(datetime.timedelta(seconds=train_end_time - train_start_time)))
+
+    model.load_state_dict(torch.load("{}/model.pth".format(output_dir), map_location=device))
+
+    test_data = TestData(input_dir)
+    test_set = TestDataset(test_data.test_set_df, input_dir, image_size)
+    test_set_data_loader = \
+        DataLoader(test_set, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=pin_memory)
+
+    submission_df = test_data.test_set_df.copy()
+    predicted = predict(model, test_set_data_loader)
+    submission_df["Predicted"] = [" ".join(p) for p in predicted]
+    submission_df.to_csv("{}/submission.csv".format(output_dir))
 
 
 if __name__ == "__main__":

@@ -57,6 +57,38 @@ class TrainDataset(Dataset):
         return image_t, categories_t
 
 
+class TestData:
+    def __init__(self, data_dir):
+        start_time = time.time()
+
+        self.test_set_df = pd.read_csv("{}/sample_submission.csv".format(data_dir), index_col="Id", usecols="Id")
+
+        end_time = time.time()
+        log("Time to prepare test data: {}".format(str(datetime.timedelta(seconds=end_time - start_time))))
+
+
+class TestDataset(Dataset):
+    def __init__(self, df, data_dir, image_size):
+        super().__init__()
+        self.df = df
+        self.data_dir = data_dir
+        self.image_size = image_size
+
+    def __len__(self):
+        return len(self.df)
+
+    def __getitem__(self, index):
+        id = self.df.index[index]
+
+        image = load_image(self.data_dir + "/test", id, self.image_size)
+
+        image_t = image_to_tensor(image)
+
+        # image = normalize(image, (0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
+
+        return (image_t,)
+
+
 def load_image(base_dir, id, image_size):
     r = load_image_channel("{}/{}_red.png".format(base_dir, id), image_size)
     g = load_image_channel("{}/{}_green.png".format(base_dir, id), image_size)

@@ -30,9 +30,9 @@ function archive_artifacts() {
     rm -rf /artifacts/logs
   fi
 
-  rm -rf /storage/models/quickdraw/${RUN_NAME}
-  mkdir -p /storage/models/quickdraw/${RUN_NAME}
-  cp -r /artifacts/* /storage/models/quickdraw/${RUN_NAME}
+  rm -rf /storage/models/hpa/${RUN_NAME}
+  mkdir -p /storage/models/hpa/${RUN_NAME}
+  cp -r /artifacts/* /storage/models/hpa/${RUN_NAME}
 }
 
 RUN_NAME=$1
