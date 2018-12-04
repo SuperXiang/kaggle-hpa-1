@@ -351,7 +351,7 @@ def main():
         epoch_duration_time = epoch_end_time - epoch_start_time
 
         log(
-            "[%03d/%03d] %ds, lr: %.6f, loss: %.4f, val_loss: %.4f, acc: %.4f, val_acc: %.4f, ckpt: %d, rst: %d" % (
+            "[%03d/%03d] %ds, lr: %.6f, loss: %.4f, val_loss: %.4f, score: %.4f, val_score: %.4f, ckpt: %d, rst: %d" % (
                 epoch + 1,
                 epochs_to_train,
                 epoch_duration_time,

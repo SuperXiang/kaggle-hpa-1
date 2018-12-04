@@ -10,6 +10,6 @@ def f1score(prediction_logits, targets, epsilon=1e-7):
     precision = true_positives.sum(dim=1) / (positives.sum(dim=1) + epsilon)
     recall = true_positives.sum(dim=1) / targets.sum(dim=1)
 
-    score = 2 * (precision * recall) / (precision + recall)
+    score = 2 * (precision * recall) / (precision + recall + epsilon)
 
     return score.mean()
