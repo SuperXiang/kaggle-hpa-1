@@ -392,7 +392,7 @@ def main():
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
-    argparser.add_argument("--input_dir", default="/storage/kaggle/quickdraw")
+    argparser.add_argument("--input_dir", default="/storage/kaggle/hpa")
     argparser.add_argument("--output_dir", default="/artifacts")
     argparser.add_argument("--base_model_dir", default=None)
     argparser.add_argument("--image_size", default=512, type=int)
