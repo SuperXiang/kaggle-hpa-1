@@ -27,6 +27,20 @@ cudnn.benchmark = True
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+CLASS_FREQUENCIES = [
+    12885.0, 1254.0, 3621.0, 1561.0, 1858.0, 2513.0, 1008.0, 2822.0, 53.0, 45.0, 28.0, 1093.0, 688.0, 537.0, 1066.0,
+    21.0, 530.0, 210.0, 902.0, 1482.0, 172.0, 3777.0, 802.0, 2965.0, 322.0, 8228.0, 328.0, 11.0
+]
+
+CLASS_WEIGHTS = [
+    0.07411719053162592, 0.7615629984051037, 0.26373929853631595, 0.6117873158231902, 0.5139935414424112,
+    0.3800238758456029, 0.9474206349206349, 0.33841247342310415, 18.0188679245283, 21.22222222222222,
+    34.107142857142854, 0.8737419945105215, 1.3880813953488371, 1.7783985102420856, 0.8958724202626641,
+    45.476190476190474, 1.8018867924528301, 4.5476190476190474, 1.058758314855876, 0.6443994601889339,
+    5.5523255813953485, 0.25284617421233785, 1.1907730673316708, 0.3220910623946037, 2.9658385093167703,
+    0.11606708799222168, 2.9115853658536586, 86.81818181818181
+]
+
 
 def create_model(type, input_size, num_classes):
     if type == "cnn":
@@ -57,6 +71,7 @@ def evaluate(model, data_loader, criterion):
                 batch[1].to(device, non_blocking=True)
 
             prediction_logits = model(images)
+            criterion.weight = CLASS_WEIGHTS
             loss = criterion(prediction_logits, categories)
 
             loss_sum_t += loss
@@ -288,6 +303,7 @@ def main():
                 optimizer.zero_grad()
 
             prediction_logits = model(images)
+            criterion.weight = CLASS_WEIGHTS
             loss = criterion(prediction_logits, categories)
             loss.backward()
 

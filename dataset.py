@@ -18,11 +18,12 @@ class TrainData:
         df = pd.read_csv(
             "{}/train.csv".format(data_dir),
             index_col="Id",
-            converters={"Target": lambda target: list(map(int, str(target).split(" ")))}
+            converters={"Target": lambda target: tuple(map(int, str(target).split(" ")))}
         )
 
         train_set_ids, val_set_ids = train_test_split(df.index, test_size=0.2, random_state=42)
 
+        self.df = df
         self.train_set_df = df[df.index.isin(train_set_ids)].copy()
         self.val_set_df = df[df.index.isin(val_set_ids)].copy()
 
