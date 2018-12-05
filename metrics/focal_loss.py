@@ -13,7 +13,7 @@ class FocalLoss(nn.Module):
         target = target.view(-1, 1).long()
 
         if self.weight is None:
-            self.weight = [1] * 28
+            self.weight = torch.FloatTensor([1] * 28).cuda()
 
         prob = F.sigmoid(logit)
         prob = prob.view(-1, 1)
@@ -21,7 +21,7 @@ class FocalLoss(nn.Module):
         select = torch.FloatTensor(len(prob), 2).zero_().cuda()
         select.scatter_(1, target, 1.)
 
-        self.weight = torch.FloatTensor(self.weight).cuda().view(-1, 1)
+        self.weight = self.weight.view(-1, 1)
         self.weight = torch.gather(self.weight, 0, target)
 
         prob = (prob * select).sum(1).view(-1, 1)
