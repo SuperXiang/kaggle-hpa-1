@@ -71,7 +71,7 @@ def log(*args):
 
 
 def log_args(args):
-    print("Arguments:")
+    log("Arguments:")
     for arg in vars(args):
-        print("  {}: {}".format(arg, getattr(args, arg)))
-    print()
+        log("  {}: {}".format(arg, getattr(args, arg)))
+    log()
