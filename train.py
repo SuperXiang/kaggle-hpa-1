@@ -295,6 +295,11 @@ def main():
 
         epoch_batch_iter_count = 0
 
+        if lr_scheduler_type == "lr_finder":
+            r = current_sgdr_cycle_epochs / min(current_sgdr_cycle_epochs, (sgdr_iterations + 1) / epoch_iterations)
+            new_lr = lr_min + r * (lr_max - lr_min)
+            adjust_learning_rate(optimizer, new_lr)
+
         for b, batch in enumerate(train_set_data_loader):
             images, categories = \
                 batch[0].to(device, non_blocking=True), \
