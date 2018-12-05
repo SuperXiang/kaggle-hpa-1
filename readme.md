@@ -29,6 +29,7 @@
 * data leak: https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/73395
 * find correlation between different classes for multi-class targets in training data
 * add lr finder mode to lr scheduling
+* save the val/test predictions
 
 
 ### Challenges
