@@ -425,7 +425,8 @@ def main():
 
     submission_df = test_data.test_set_df.copy()
     test_predictions, _ = predict(model, test_set_data_loader)
-    submission_df["Predicted"] = calculate_categories_from_predictions(test_predictions, threshold=best_threshold)
+    predicted_categories = calculate_categories_from_predictions(test_predictions, threshold=best_threshold)
+    submission_df["Predicted"] = [" ".join(pc) for pc in predicted_categories]
     submission_df.to_csv("{}/submission.csv".format(output_dir))
 
 
