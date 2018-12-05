@@ -296,7 +296,7 @@ def main():
         epoch_batch_iter_count = 0
 
         if lr_scheduler_type == "lr_finder":
-            new_lr = lr_min + min(1, sgdr_iterations / epoch_iterations) * (lr_max - lr_min)
+            new_lr = lr_min + min(1, sgdr_iterations / epoch_iterations / sgdr_cycle_epochs) * (lr_max - lr_min)
             adjust_learning_rate(optimizer, new_lr)
 
         for b, batch in enumerate(train_set_data_loader):
