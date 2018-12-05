@@ -1,31 +1,25 @@
 import torch.nn as nn
-from torchvision.models import resnet50
-
-from .common import ExpandChannels2d
+from torchvision.models import resnet18, resnet34, resnet50
 
 
 class ResNet(nn.Module):
-    def __init__(self, num_classes):
+    def __init__(self, type, num_classes):
         super().__init__()
 
-        self.resnet = resnet50(pretrained=True)
+        if type == "resnet18":
+            self.resnet = resnet18(pretrained=True)
+            num_fc_in_channels = 512
+        elif type == "resnet34":
+            self.resnet = resnet34(pretrained=True)
+            num_fc_in_channels = 512
+        elif type == "resnet50":
+            self.resnet = resnet50(pretrained=True)
+            num_fc_in_channels = 2048
+        else:
+            raise Exception("Unsupported resnet model type: '{}".format(type))
 
-        self.avgpool = nn.AdaptiveAvgPool2d(output_size=1)
-        self.fc = nn.Linear(2048, num_classes)
+        self.resnet.avgpool = nn.AdaptiveAvgPool2d(output_size=1)
+        self.resnet.fc = nn.Linear(num_fc_in_channels, num_classes)
 
     def forward(self, x):
-        x = self.resnet.conv1(x)
-        x = self.resnet.bn1(x)
-        x = self.resnet.relu(x)
-        x = self.resnet.maxpool(x)
-
-        x = self.resnet.layer1(x)
-        x = self.resnet.layer2(x)
-        x = self.resnet.layer3(x)
-        x = self.resnet.layer4(x)
-
-        x = self.avgpool(x)
-        x = x.view(x.size(0), -1)
-        x = self.fc(x)
-
-        return x
+        return self.resnet(x)

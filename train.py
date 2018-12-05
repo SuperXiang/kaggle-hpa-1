@@ -47,8 +47,8 @@ CLASS_WEIGHTS_TENSOR = torch.tensor(CLASS_WEIGHTS).float().to(device)
 def create_model(type, input_size, num_classes):
     if type == "cnn":
         model = SimpleCnn(num_classes=num_classes)
-    elif type in ["resnet50"]:
-        model = ResNet(num_classes=num_classes)
+    elif type in ["resnet18", "resnet34", "resnet50"]:
+        model = ResNet(type=type, num_classes=num_classes)
     else:
         raise Exception("Unsupported model type: '{}".format(type))
 
