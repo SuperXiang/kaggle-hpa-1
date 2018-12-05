@@ -41,6 +41,8 @@ CLASS_WEIGHTS = [
     0.11606708799222168, 2.9115853658536586, 86.81818181818181
 ]
 
+CLASS_WEIGHTS_TENSOR = torch.tensor(CLASS_WEIGHTS).float().to(device)
+
 
 def create_model(type, input_size, num_classes):
     if type == "cnn":
@@ -71,7 +73,7 @@ def evaluate(model, data_loader, criterion):
                 batch[1].to(device, non_blocking=True)
 
             prediction_logits = model(images)
-            criterion.weight = CLASS_WEIGHTS
+            criterion.weight = CLASS_WEIGHTS_TENSOR
             loss = criterion(prediction_logits, categories)
 
             loss_sum_t += loss
@@ -303,7 +305,7 @@ def main():
                 optimizer.zero_grad()
 
             prediction_logits = model(images)
-            criterion.weight = CLASS_WEIGHTS
+            criterion.weight = CLASS_WEIGHTS_TENSOR
             loss = criterion(prediction_logits, categories)
             loss.backward()
 
