@@ -17,7 +17,7 @@ from torch.optim.lr_scheduler import CosineAnnealingLR, ReduceLROnPlateau
 from torch.utils.data import DataLoader
 
 from dataset import TrainDataset, TrainData, TestData, TestDataset
-from metrics import FocalLoss, f1score, f1score_from_probs
+from metrics import FocalLoss, f1score, f1score_from_probs, F1Loss
 from models import ResNet, Ensemble, SimpleCnn
 from utils import get_learning_rate, str2bool, adjust_learning_rate, adjust_initial_learning_rate, \
     list_sorted_model_files, check_model_improved, log_args, log
@@ -92,6 +92,8 @@ def create_criterion(loss_type):
         criterion = nn.BCEWithLogitsLoss()
     elif loss_type == "focal":
         criterion = FocalLoss(gamma=2)
+    elif loss_type == "f1":
+        criterion = F1Loss()
     else:
         raise Exception("Unsupported loss type: '{}".format(loss_type))
     return criterion
