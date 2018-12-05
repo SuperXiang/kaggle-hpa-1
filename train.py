@@ -17,7 +17,7 @@ from torch.optim.lr_scheduler import CosineAnnealingLR, ReduceLROnPlateau
 from torch.utils.data import DataLoader
 
 from dataset import TrainDataset, TrainData, TestData, TestDataset
-from metrics import FocalLoss, f1score, f1score_from_probs, F1Loss
+from metrics import FocalLoss, f1_score, f1_score_from_probs, F1Loss
 from models import ResNet, Ensemble, SimpleCnn
 from utils import get_learning_rate, str2bool, adjust_learning_rate, adjust_initial_learning_rate, \
     list_sorted_model_files, check_model_improved, log_args, log
@@ -77,7 +77,7 @@ def evaluate(model, data_loader, criterion):
             loss = criterion(prediction_logits, categories)
 
             loss_sum_t += loss
-            score_sum_t += f1score(prediction_logits, categories)
+            score_sum_t += f1_score(prediction_logits, categories)
 
             step_count += 1
 
@@ -160,7 +160,7 @@ def calculate_best_threshold(predictions, targets):
     targets_t = torch.tensor(targets)
 
     thresholds = np.linspace(0, 1, 51)
-    scores = [f1score_from_probs(predictions_t, targets_t, threshold=t) for t in thresholds]
+    scores = [f1_score_from_probs(predictions_t, targets_t, threshold=t) for t in thresholds]
 
     best_score_index = np.argmax(scores)
 
@@ -313,7 +313,7 @@ def main():
 
             with torch.no_grad():
                 train_loss_sum_t += loss
-                train_score_sum_t += f1score(prediction_logits, categories)
+                train_score_sum_t += f1_score(prediction_logits, categories)
 
             if (b + 1) % batch_iterations == 0 or (b + 1) == len(train_set_data_loader):
                 optimizer.step()
@@ -347,8 +347,9 @@ def main():
             ckpt_saved = True
 
         sgdr_reset = False
-        if (lr_scheduler_type == "cosine_annealing") and (epoch + 1 >= sgdr_next_cycle_end_epoch) and (
-                        epoch - epoch_of_last_improval >= sgdr_cycle_end_patience):
+        if (lr_scheduler_type == "cosine_annealing") \
+                and (epoch + 1 >= sgdr_next_cycle_end_epoch) \
+                and (epoch - epoch_of_last_improval >= sgdr_cycle_end_patience):
             sgdr_iterations = 0
             current_sgdr_cycle_epochs = int(current_sgdr_cycle_epochs * sgdr_cycle_epochs_mult)
             sgdr_next_cycle_end_epoch = epoch + 1 + current_sgdr_cycle_epochs + sgdr_cycle_end_prolongation
