@@ -28,6 +28,7 @@
 * similar images between train and test set? (https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/72534)
 * data leak: https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/73395
 * find correlation between different classes for multi-class targets in training data
+* add lr finder mode to lr scheduling
 
 
 ### Challenges
@@ -43,6 +44,9 @@
   * apply data augmentation
 * thresholding
   * use per-class threshold which replicates the distribution of that class (and still improves global score)
+* reliance on f1score
+  * fixed threshold of 0.5 might be misleading
+  * use loss metric instead
 * score
   * use stronger model
   * center loss for better discrimination
