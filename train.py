@@ -91,7 +91,7 @@ def create_criterion(loss_type):
     if loss_type == "bce":
         criterion = nn.BCEWithLogitsLoss()
     elif loss_type == "focal":
-        criterion = FocalLoss()
+        criterion = FocalLoss(gamma=2)
     else:
         raise Exception("Unsupported loss type: '{}".format(loss_type))
     return criterion
