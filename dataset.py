@@ -68,17 +68,19 @@ class TrainDataset(Dataset):
         return image_t, categories_t
 
     def apply_augmentation(self, image):
-        augmentor = \
+        augmentor = iaa.Sequential([
             iaa.Sometimes(
                 0.5,
-                [
+                iaa.OneOf([
                     iaa.Affine(rotate=90),
                     iaa.Affine(rotate=180),
                     iaa.Affine(rotate=270),
-                    iaa.Affine(shear=(-16, 16)),
                     iaa.Fliplr(0.5),
                     iaa.Flipud(0.5)
-                ])
+                ])),
+            iaa.Sometimes(0.5, iaa.Affine(shear=(-16, 16))),
+            iaa.Sometimes(0.5, iaa.Multiply((0.8, 1.2)))
+        ])
 
         return augmentor.augment_image(image)
 
