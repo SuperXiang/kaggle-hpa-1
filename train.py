@@ -18,7 +18,7 @@ from torch.utils.data import DataLoader
 
 from dataset import TrainDataset, TrainData, TestData, TestDataset
 from metrics import FocalLoss, f1_score, f1_score_from_probs, F1Loss
-from models import ResNet, Ensemble, SimpleCnn
+from models import ResNet, Ensemble, SimpleCnn, InceptionV2
 from utils import get_learning_rate, str2bool, adjust_learning_rate, adjust_initial_learning_rate, \
     list_sorted_model_files, check_model_improved, log_args, log
 
@@ -44,11 +44,13 @@ CLASS_WEIGHTS = [
 CLASS_WEIGHTS_TENSOR = torch.tensor(CLASS_WEIGHTS).float().to(device)
 
 
-def create_model(type, input_size, num_classes):
+def create_model(type, num_classes):
     if type == "cnn":
         model = SimpleCnn(num_classes=num_classes)
     elif type in ["resnet18", "resnet34", "resnet50"]:
         model = ResNet(type=type, num_classes=num_classes)
+    elif type == "inceptionv2":
+        model = InceptionV2(num_classes=num_classes)
     else:
         raise Exception("Unsupported model type: '{}".format(type))
 
@@ -124,7 +126,7 @@ def predict(model, data_loader):
     return all_predictions, all_targets
 
 
-def load_ensemble_model(base_dir, ensemble_model_count, data_loader, criterion, model_type, input_size, num_classes):
+def load_ensemble_model(base_dir, ensemble_model_count, data_loader, criterion, model_type, num_classes):
     ensemble_model_candidates = list_sorted_model_files(base_dir)[-(2 * ensemble_model_count):]
     if os.path.isfile("{}/swa_model.pth".format(base_dir)):
         ensemble_model_candidates.append("{}/swa_model.pth".format(base_dir))
@@ -132,7 +134,7 @@ def load_ensemble_model(base_dir, ensemble_model_count, data_loader, criterion, 
     score_to_model = {}
     for model_file_path in ensemble_model_candidates:
         model_file_name = os.path.basename(model_file_path)
-        model = create_model(type=model_type, input_size=input_size, num_classes=num_classes).to(device)
+        model = create_model(type=model_type, num_classes=num_classes).to(device)
         model.load_state_dict(torch.load(model_file_path, map_location=device))
 
         val_loss_avg, val_score_avg = evaluate(model, data_loader, criterion)
@@ -217,7 +219,7 @@ def main():
     if base_model_dir:
         for base_file_path in glob.glob("{}/*.pth".format(base_model_dir)):
             shutil.copyfile(base_file_path, "{}/{}".format(output_dir, os.path.basename(base_file_path)))
-        model = create_model(type=model_type, input_size=image_size, num_classes=28).to(device)
+        model = create_model(type=model_type, num_classes=28).to(device)
         model.load_state_dict(torch.load("{}/model.pth".format(output_dir), map_location=device))
         optimizer = create_optimizer(optimizer_type, model, lr_max)
         if os.path.isfile("{}/optimizer.pth".format(output_dir)):
@@ -225,7 +227,7 @@ def main():
             adjust_initial_learning_rate(optimizer, lr_max)
             adjust_learning_rate(optimizer, lr_max)
     else:
-        model = create_model(type=model_type, input_size=image_size, num_classes=28).to(device)
+        model = create_model(type=model_type, num_classes=28).to(device)
         optimizer = create_optimizer(optimizer_type, model, lr_max)
 
     torch.save(model.state_dict(), "{}/model.pth".format(output_dir))
