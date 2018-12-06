@@ -258,7 +258,7 @@ def main():
     epoch_of_last_improval = 0
 
     lr_scheduler_plateau = \
-        ReduceLROnPlateau(optimizer, mode="max", min_lr=lr_min, patience=lr_patience, factor=0.8, threshold=1e-4)
+        ReduceLROnPlateau(optimizer, mode="max", min_lr=lr_min, patience=lr_patience, factor=0.5, threshold=1e-4)
 
     log('{"chart": "best_val_score", "axis": "epoch"}')
     log('{"chart": "val_score", "axis": "epoch"}')
@@ -456,7 +456,7 @@ if __name__ == "__main__":
     argparser.add_argument("--num_workers", default=8, type=int)
     argparser.add_argument("--pin_memory", default=True, type=str2bool)
     argparser.add_argument("--lr_scheduler", default="cosine_annealing")
-    argparser.add_argument("--lr_patience", default=1, type=int)
+    argparser.add_argument("--lr_patience", default=5, type=int)
     argparser.add_argument("--lr_min", default=0.01, type=float)
     argparser.add_argument("--lr_max", default=0.1, type=float)
     argparser.add_argument("--lr_min_decay", default=1.0, type=float)

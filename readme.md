@@ -40,6 +40,7 @@
   * focal loss
   * stratified train/test split (for multi target samples, take the most rare category for stratification)
   * stratified mini-batch sampling
+  * do oversampling of classes with low frequencies
 * overfitting
   * add dropout
   * apply data augmentation
