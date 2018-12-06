@@ -52,6 +52,7 @@
   * use stronger model
   * center loss for better discrimination
   * attention
-  * optimize f1 score directly
+  * use f1 score based loss
+  * use f1 score based loss with weights
 * prediction performance (special prize)
   * knowledge distillation
