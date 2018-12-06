@@ -18,7 +18,10 @@ class ResNet(nn.Module):
         else:
             raise Exception("Unsupported resnet model type: '{}".format(type))
 
-        self.resnet.conv1 = nn.Conv2d(4, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        conv1 = nn.Conv2d(4, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        conv1.weight.data[:, 0:3, :, :] = self.resnet.conv1.weight.data
+        self.resnet.conv1 = conv1
+
         self.resnet.avgpool = nn.AdaptiveAvgPool2d(output_size=1)
         self.resnet.fc = nn.Linear(num_fc_in_channels, num_classes)
 
