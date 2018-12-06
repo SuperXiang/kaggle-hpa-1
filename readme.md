@@ -30,6 +30,7 @@
 * find correlation between different classes for multi-class targets in training data
 * add lr finder mode to lr scheduling
 * save the val/test predictions
+* treat problem as image segmentation with green channel as mask
 
 
 ### Challenges
@@ -44,6 +45,7 @@
 * overfitting
   * add dropout
   * apply data augmentation
+  * use leaky ReLU
 * thresholding
   * use per-class threshold which replicates the distribution of that class (and still improves global score)
 * reliance on f1score

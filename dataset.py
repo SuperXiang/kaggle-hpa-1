@@ -5,8 +5,10 @@ import cv2
 import numpy as np
 import pandas as pd
 import torch
+from imgaug import augmenters as iaa
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset
+from torchvision.transforms.functional import normalize
 
 from utils import log
 
@@ -32,12 +34,13 @@ class TrainData:
 
 
 class TrainDataset(Dataset):
-    def __init__(self, df, data_dir, num_categories, image_size):
+    def __init__(self, df, data_dir, num_categories, image_size, augment):
         super().__init__()
         self.df = df
         self.data_dir = data_dir
         self.num_categories = num_categories
         self.image_size = image_size
+        self.augment = augment
 
     def __len__(self):
         return len(self.df)
@@ -48,14 +51,36 @@ class TrainDataset(Dataset):
 
         image = load_image(self.data_dir + "/train", id, self.image_size)
 
+        if self.augment:
+            image = self.apply_augmentation(image)
+
         image_t = image_to_tensor(image)
         categories_t = categories_to_tensor(categories, self.num_categories)
 
         assert categories_t.sum() > 0, "image has no targets: {} -> {}".format(id, categories)
 
-        # image = normalize(image, (0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
+        image_t = normalize(
+            image_t,
+            mean=(0.0804419, 0.0526298, 0.0547470, 0.0827089),
+            std=(0.1496247, 0.1122266, 0.1560370, 0.1496669)
+        )
 
         return image_t, categories_t
+
+    def apply_augmentation(self, image):
+        augmentor = \
+            iaa.Sometimes(
+                0.5,
+                [
+                    iaa.Affine(rotate=90),
+                    iaa.Affine(rotate=180),
+                    iaa.Affine(rotate=270),
+                    iaa.Affine(shear=(-16, 16)),
+                    iaa.Fliplr(0.5),
+                    iaa.Flipud(0.5)
+                ])
+
+        return augmentor.augment_image(image)
 
 
 class TestData:
@@ -85,7 +110,11 @@ class TestDataset(Dataset):
 
         image_t = image_to_tensor(image)
 
-        # image = normalize(image, (0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
+        image_t = normalize(
+            image_t,
+            mean=(0.0804419, 0.0526298, 0.0547470, 0.0827089),
+            std=(0.1496247, 0.1122266, 0.1560370, 0.1496669)
+        )
 
         return (image_t,)
 

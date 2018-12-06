@@ -207,12 +207,12 @@ def main():
 
     train_data = TrainData(input_dir)
 
-    train_set = TrainDataset(train_data.train_set_df, input_dir, 28, image_size)
+    train_set = TrainDataset(train_data.train_set_df, input_dir, 28, image_size, augment)
     train_set_data_loader = \
         DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=num_workers,
                    pin_memory=pin_memory)
 
-    val_set = TrainDataset(train_data.val_set_df, input_dir, 28, image_size)
+    val_set = TrainDataset(train_data.val_set_df, input_dir, 28, image_size, False)
     val_set_data_loader = \
         DataLoader(val_set, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=pin_memory)
 
