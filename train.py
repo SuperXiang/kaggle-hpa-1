@@ -450,7 +450,7 @@ if __name__ == "__main__":
     argparser.add_argument("--output_dir", default="/artifacts")
     argparser.add_argument("--base_model_dir", default=None)
     argparser.add_argument("--image_size", default=256, type=int)
-    argparser.add_argument("--augment", default=False, type=str2bool)
+    argparser.add_argument("--augment", default=True, type=str2bool)
     argparser.add_argument("--use_progressive_image_sizes", default=False, type=str2bool)
     argparser.add_argument("--progressive_image_size_min", default=32, type=int)
     argparser.add_argument("--progressive_image_size_step", default=16, type=int)
