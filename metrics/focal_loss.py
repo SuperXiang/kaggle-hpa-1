@@ -31,7 +31,9 @@ class FocalLoss(nn.Module):
         # focus = torch.where(focus < 2.0, focus, torch.zeros(prob.size()).cuda())
         focus = torch.clamp(focus, 0, 2)
 
-        batch_loss = - self.weight * focus * prob.log()
+        # FIXME: verify the weight related code
+        # batch_loss = - self.weight * focus * prob.log()
+        batch_loss = -focus * prob.log()
 
         if self.size_average:
             loss = batch_loss.mean()
