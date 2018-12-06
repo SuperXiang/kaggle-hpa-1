@@ -65,7 +65,7 @@ class TrainDataset(Dataset):
         image = load_image(self.data_dir + "/train", id, self.image_size)
 
         if self.augment:
-            image = self.apply_augmentation(image)
+            image = self.augmentor.augment_image(image)
 
         image_t = image_to_tensor(image)
         categories_t = categories_to_tensor(categories, self.num_categories)
@@ -79,9 +79,6 @@ class TrainDataset(Dataset):
         )
 
         return image_t, categories_t
-
-    def apply_augmentation(self, image):
-        return self.augmentor.augment_image(image)
 
 
 class TestData:
