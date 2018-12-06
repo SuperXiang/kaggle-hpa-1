@@ -4,9 +4,8 @@ import torch.nn.functional as F
 
 
 class F1Loss(nn.Module):
-    def __init__(self, class_weights=None):
+    def __init__(self):
         super().__init__()
-        self.class_weights = class_weights
 
     def forward(self, logits, targets):
         epsilon = 1e-6
@@ -15,8 +14,8 @@ class F1Loss(nn.Module):
 
         p = F.sigmoid(logits)
         l = targets
-        if self.class_weights is not None:
-            weights = self.class_weights.expand(batch_size, -1)
+        if self.weight is not None:
+            weights = self.weight.expand(batch_size, -1)
             p *= weights
             l *= weights
 
