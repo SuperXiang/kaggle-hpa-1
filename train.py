@@ -464,7 +464,7 @@ if __name__ == "__main__":
     argparser.add_argument("--model", default="cnn")
     argparser.add_argument("--patience", default=5, type=int)
     argparser.add_argument("--optimizer", default="sgd")
-    argparser.add_argument("--loss", default="bce")
+    argparser.add_argument("--loss", default="f1")
     argparser.add_argument("--sgdr_cycle_epochs", default=5, type=int)
     argparser.add_argument("--sgdr_cycle_epochs_mult", default=1.0, type=float)
     argparser.add_argument("--sgdr_cycle_end_prolongation", default=0, type=int)
