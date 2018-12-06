@@ -258,7 +258,7 @@ def main():
     epoch_of_last_improval = 0
 
     lr_scheduler_plateau = \
-        ReduceLROnPlateau(optimizer, mode="max", min_lr=lr_min, patience=lr_patience, factor=0.5, threshold=1e-4)
+        ReduceLROnPlateau(optimizer, mode="max", min_lr=lr_min, patience=lr_patience, factor=0.1, threshold=1e-4)
 
     lr_scheduler_step = StepLR(optimizer, step_size=10, gamma=0.1)
 
