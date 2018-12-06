@@ -13,7 +13,7 @@ import torch.backends.cudnn as cudnn
 import torch.nn as nn
 import torch.optim as optim
 from tensorboardX import SummaryWriter
-from torch.optim.lr_scheduler import CosineAnnealingLR, ReduceLROnPlateau
+from torch.optim.lr_scheduler import CosineAnnealingLR, ReduceLROnPlateau, StepLR
 from torch.utils.data import DataLoader
 
 from dataset import TrainDataset, TrainData, TestData, TestDataset
@@ -260,6 +260,8 @@ def main():
     lr_scheduler_plateau = \
         ReduceLROnPlateau(optimizer, mode="max", min_lr=lr_min, patience=lr_patience, factor=0.5, threshold=1e-4)
 
+    lr_scheduler_step = StepLR(optimizer, step_size=10, gamma=0.1)
+
     log('{"chart": "best_val_score", "axis": "epoch"}')
     log('{"chart": "val_score", "axis": "epoch"}')
     log('{"chart": "val_loss", "axis": "epoch"}')
@@ -335,6 +337,8 @@ def main():
 
         if lr_scheduler_type == "reduce_on_plateau":
             lr_scheduler_plateau.step(val_score_avg)
+        elif lr_scheduler_type == "step":
+            lr_scheduler_step.step(epoch)
 
         model_improved_within_sgdr_cycle = check_model_improved(sgdr_cycle_val_score_best_avg, val_score_avg)
         if model_improved_within_sgdr_cycle:
@@ -403,7 +407,8 @@ def main():
         log('{"chart": "mem_used", "x": %d, "y": %.2f}' % (epoch + 1, psutil.virtual_memory().used / 2 ** 30))
         log('{"chart": "epoch_time", "x": %d, "y": %d}' % (epoch + 1, epoch_duration_time))
 
-        if (sgdr_reset or lr_scheduler_type == "reduce_on_plateau") and epoch - epoch_of_last_improval >= patience:
+        if (sgdr_reset or lr_scheduler_type in ("reduce_on_plateau", "step")) \
+                and epoch - epoch_of_last_improval >= patience:
             log("early abort due to lack of improval")
             break
 
