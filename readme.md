@@ -47,6 +47,7 @@
   * apply data augmentation
   * use leaky ReLU
 * thresholding
+  * use per-class threshold which optimizes for that class only
   * use per-class threshold which replicates the distribution of that class (and still improves global score)
 * reliance on f1score
   * fixed threshold of 0.5 might be misleading

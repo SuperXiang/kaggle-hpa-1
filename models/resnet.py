@@ -23,7 +23,11 @@ class ResNet(nn.Module):
         self.resnet.conv1 = conv1
 
         self.resnet.avgpool = nn.AdaptiveAvgPool2d(output_size=1)
-        self.resnet.fc = nn.Linear(num_fc_in_channels, num_classes)
+        self.resnet.fc = nn.Sequential(
+            nn.BatchNorm1d(num_fc_in_channels),
+            nn.Dropout(0.5),
+            nn.Linear(num_fc_in_channels, num_classes),
+        )
 
     def forward(self, x):
         return self.resnet(x)
