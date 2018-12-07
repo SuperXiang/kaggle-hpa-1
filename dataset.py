@@ -45,13 +45,15 @@ class TrainDataset(Dataset):
             iaa.Sometimes(
                 0.5,
                 iaa.OneOf([
+                    iaa.Fliplr(0.5),
+                    iaa.Flipud(0.5),
                     iaa.Affine(rotate=90),
                     iaa.Affine(rotate=180),
                     iaa.Affine(rotate=270),
-                    iaa.Fliplr(0.5),
-                    iaa.Flipud(0.5)
+                    iaa.Affine(rotate=(-10, +10))
                 ])),
             iaa.Sometimes(0.5, iaa.Affine(shear=(-16, 16))),
+            iaa.Sometimes(0.5, iaa.ElasticTransformation(alpha=10.0, sigma=5.0)),
             iaa.Sometimes(0.5, iaa.Multiply((0.8, 1.2), per_channel=True))
         ])
 

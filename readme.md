@@ -13,6 +13,7 @@
 * https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/73199
 * focal loss: https://github.com/Prakashvanapalli/av_mckinesy_recommendation_challenge/blob/master/func.py#L55
 * https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/72534
+* https://arxiv.org/abs/1703.04782
 
 
 ### Ideas
@@ -46,6 +47,7 @@
   * do oversampling of classes with low frequencies
 * overfitting
   * add dropout
+  * add dropout2d to early conv layers
   * apply data augmentation
   * use leaky ReLU
 * thresholding
