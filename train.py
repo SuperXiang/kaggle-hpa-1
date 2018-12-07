@@ -166,7 +166,7 @@ def calculate_best_threshold(predictions, targets):
 
     best_score_index = np.argmax(scores)
 
-    return thresholds[best_score_index], scores[best_score_index]
+    return thresholds[best_score_index], scores[best_score_index], scores
 
 
 def main():
@@ -435,8 +435,9 @@ def main():
     model.load_state_dict(torch.load("{}/model.pth".format(output_dir), map_location=device))
 
     val_predictions, val_targets = predict(model, val_set_data_loader)
-    best_threshold, best_score = calculate_best_threshold(val_predictions, val_targets)
-    log("Best threshold / score: {} / {}".format(best_threshold, best_score))
+    best_threshold, best_threshold_score, all_threshold_scores = calculate_best_threshold(val_predictions, val_targets)
+    log("All threshold scores: {}".format(all_threshold_scores))
+    log("Best threshold / score: {} / {}".format(best_threshold, best_threshold_score))
 
     test_data = TestData(input_dir)
     test_set = TestDataset(test_data.test_set_df, input_dir, image_size)
