@@ -52,7 +52,7 @@ class TrainDataset(Dataset):
                     iaa.Flipud(0.5)
                 ])),
             iaa.Sometimes(0.5, iaa.Affine(shear=(-16, 16))),
-            iaa.Sometimes(0.5, iaa.Multiply((0.8, 1.2)))
+            iaa.Sometimes(0.5, iaa.Multiply((0.8, 1.2), per_channel=True))
         ])
 
     def __len__(self):
