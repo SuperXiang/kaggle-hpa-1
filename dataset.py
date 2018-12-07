@@ -34,13 +34,14 @@ class TrainData:
 
 
 class TrainDataset(Dataset):
-    def __init__(self, df, data_dir, num_categories, image_size, augment):
+    def __init__(self, df, data_dir, num_categories, image_size, augment, normalize_images=True):
         super().__init__()
         self.df = df
         self.data_dir = data_dir
         self.num_categories = num_categories
         self.image_size = image_size
         self.augment = augment
+        self.normalize_images = normalize_images
         self.augmentor = iaa.Sequential([
             iaa.Sometimes(
                 0.5,
@@ -74,11 +75,12 @@ class TrainDataset(Dataset):
 
         assert categories_t.sum() > 0, "image has no targets: {} -> {}".format(id, categories)
 
-        image_t = normalize(
-            image_t,
-            mean=(0.0804419, 0.0526298, 0.0547470, 0.0827089),
-            std=(0.1496247, 0.1122266, 0.1560370, 0.1496669)
-        )
+        if self.normalize_images:
+            image_t = normalize(
+                image_t,
+                mean=(0.0804419, 0.0526298, 0.0547470, 0.0827089),
+                std=(0.1496247, 0.1122266, 0.1560370, 0.1496669)
+            )
 
         return image_t, categories_t
 
@@ -94,11 +96,12 @@ class TestData:
 
 
 class TestDataset(Dataset):
-    def __init__(self, df, data_dir, image_size):
+    def __init__(self, df, data_dir, image_size, normalize_images=True):
         super().__init__()
         self.df = df
         self.data_dir = data_dir
         self.image_size = image_size
+        self.normalize_images = normalize_images
 
     def __len__(self):
         return len(self.df)
@@ -110,11 +113,12 @@ class TestDataset(Dataset):
 
         image_t = image_to_tensor(image)
 
-        image_t = normalize(
-            image_t,
-            mean=(0.0804419, 0.0526298, 0.0547470, 0.0827089),
-            std=(0.1496247, 0.1122266, 0.1560370, 0.1496669)
-        )
+        if self.normalize_images:
+            image_t = normalize(
+                image_t,
+                mean=(0.0804419, 0.0526298, 0.0547470, 0.0827089),
+                std=(0.1496247, 0.1122266, 0.1560370, 0.1496669)
+            )
 
         return (image_t,)
 
