@@ -209,6 +209,9 @@ def main():
     if not use_class_weights:
         CLASS_WEIGHTS_TENSOR = None
 
+    if optimizer_type == "adam":
+        lr_scheduler_type = "adam"
+
     progressive_image_sizes = list(range(progressive_image_size_min, image_size + 1, progressive_image_size_step))
 
     train_data = TrainData(input_dir)
