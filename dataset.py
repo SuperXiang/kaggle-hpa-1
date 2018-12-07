@@ -20,7 +20,7 @@ class TrainData:
         df = pd.read_csv(
             "{}/train.csv".format(data_dir),
             index_col="Id",
-            converters={"Target": lambda target: tuple(map(int, str(target).split(" ")))}
+            converters={"Target": lambda target: tuple(sorted(list(map(int, str(target).split(" ")))))}
         )
 
         train_set_ids, val_set_ids = train_test_split(df.index, test_size=0.2, random_state=42)

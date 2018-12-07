@@ -34,6 +34,7 @@
 * treat problem as image segmentation with green channel as mask
 * use adap optimizer w/o fiddling around on the lr
 * use the green layer for attention
+* check how many combinations of predictions there are -> do some grouping?
 
 
 ### Challenges
@@ -42,9 +43,9 @@
   * visualize/explore
   * bce loss weights
   * focal loss
-  * stratified train/test split (for multi target samples, take the most rare category for stratification)
+  * stratified train/test split (StratifiedShuffleSplit from scikit-learn)
   * stratified mini-batch sampling
-  * do oversampling of classes with low frequencies
+  * do oversampling of classes with low frequencies (WeightedRandomSampler)
 * overfitting
   * add dropout
   * add dropout2d to early conv layers
@@ -61,6 +62,9 @@
   * use stronger model
   * center loss for better discrimination
   * attention
+    * https://arxiv.org/abs/1704.06904
+    * https://arxiv.org/abs/1706.03762
+    * https://openreview.net/pdf?id=rJe7FW-Cb
   * use f1 score based loss
   * use f1 score based loss with weights
   * combine f1 loss with bce/focal loss

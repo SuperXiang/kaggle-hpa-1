@@ -15,6 +15,7 @@ import torch.optim as optim
 from tensorboardX import SummaryWriter
 from torch.optim.lr_scheduler import CosineAnnealingLR, ReduceLROnPlateau, StepLR
 from torch.utils.data import DataLoader
+from torch.utils.data.sampler import WeightedRandomSampler
 
 from dataset import TrainDataset, TrainData, TestData, TestDataset
 from metrics import FocalLoss, f1_score, f1_score_from_probs, F1Loss
@@ -169,6 +170,19 @@ def calculate_best_threshold(predictions, targets):
     return thresholds[best_score_index], scores[best_score_index], scores
 
 
+def calculate_balance_weights(df, num_classes):
+    counts = np.zeros(num_classes)
+    for target in df.Target:
+        counts[np.asarray(target)] += 1
+
+    median_count = np.median(counts)
+    class_weights = np.asarray([median_count / c for c in counts])
+
+    weights = [np.max(class_weights[np.asarray(target)]) for target in df.Target]
+
+    return weights, class_weights.tolist()
+
+
 def main():
     global CLASS_WEIGHTS_TENSOR
 
@@ -217,9 +231,18 @@ def main():
     train_data = TrainData(input_dir)
 
     train_set = TrainDataset(train_data.train_set_df, input_dir, 28, image_size, augment)
-    train_set_data_loader = \
-        DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=num_workers,
-                   pin_memory=pin_memory)
+
+    balance_weights, balance_class_weights = calculate_balance_weights(train_data.df, 28)
+    print("balance_class_weights: {}".format(balance_class_weights))
+
+    train_set_sampler = WeightedRandomSampler(balance_weights, len(balance_weights))
+    train_set_data_loader = DataLoader(
+        train_set,
+        batch_size=batch_size,
+        shuffle=False,
+        sampler=train_set_sampler,
+        num_workers=num_workers,
+        pin_memory=pin_memory)
 
     val_set = TrainDataset(train_data.val_set_df, input_dir, 28, image_size, False)
     val_set_data_loader = \
