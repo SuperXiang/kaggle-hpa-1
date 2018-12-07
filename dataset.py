@@ -62,6 +62,9 @@ class TrainDataset(Dataset):
         return len(self.df)
 
     def __getitem__(self, index):
+        if not isinstance(index, int):
+            index = index.item()
+
         id = self.df.index[index]
         categories = self.df.iloc[index].Target
 
