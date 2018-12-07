@@ -49,6 +49,7 @@
 * thresholding
   * use per-class threshold which optimizes for that class only
   * use per-class threshold which replicates the distribution of that class (and still improves global score)
+  * learn the thresholds (per class)
 * reliance on f1score
   * fixed threshold of 0.5 might be misleading
   * use loss metric instead
@@ -58,5 +59,6 @@
   * attention
   * use f1 score based loss
   * use f1 score based loss with weights
+  * combine f1 loss with bce/focal loss
 * prediction performance (special prize)
   * knowledge distillation
