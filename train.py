@@ -170,7 +170,7 @@ def calculate_best_threshold(predictions, targets):
     return thresholds[best_score_index], scores[best_score_index], scores
 
 
-def calculate_balance_weights(df, num_classes):
+def calculate_balance_weights(df, target_df, num_classes):
     counts = np.zeros(num_classes)
     for target in df.Target:
         counts[np.asarray(target)] += 1
@@ -178,7 +178,7 @@ def calculate_balance_weights(df, num_classes):
     median_count = np.median(counts)
     class_weights = np.asarray([median_count / c for c in counts])
 
-    weights = [np.max(class_weights[np.asarray(target)]) for target in df.Target]
+    weights = [np.max(class_weights[np.asarray(target)]) for target in target_df.Target]
 
     return weights, class_weights.tolist()
 
@@ -232,7 +232,7 @@ def main():
 
     train_set = TrainDataset(train_data.train_set_df, input_dir, 28, image_size, augment)
 
-    balance_weights, balance_class_weights = calculate_balance_weights(train_data.df, 28)
+    balance_weights, balance_class_weights = calculate_balance_weights(train_data.df, train_data.train_set_df, 28)
     print("balance_class_weights: {}".format(balance_class_weights))
 
     train_set_sampler = WeightedRandomSampler(balance_weights, len(balance_weights))
