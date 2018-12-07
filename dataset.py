@@ -51,11 +51,11 @@ class TrainDataset(Dataset):
                     iaa.Affine(rotate=90),
                     iaa.Affine(rotate=180),
                     iaa.Affine(rotate=270),
-                    iaa.Affine(rotate=(-10, +10))
+                    iaa.Affine(rotate=(-20, +20))
                 ])),
             iaa.Sometimes(0.5, iaa.Affine(shear=(-16, 16))),
-            iaa.Sometimes(0.5, iaa.ElasticTransformation(alpha=10.0, sigma=5.0)),
-            iaa.Sometimes(0.5, iaa.Multiply((0.8, 1.2), per_channel=True))
+            iaa.Sometimes(0.5, iaa.ElasticTransformation(alpha=(20.0, 50.0), sigma=5.0)),
+            iaa.Sometimes(0.5, iaa.Multiply((0.7, 1.3), per_channel=True))
         ])
 
     def __len__(self):
@@ -128,7 +128,7 @@ def load_image(base_dir, id, image_size):
     g = load_image_channel("{}/{}_green.png".format(base_dir, id), image_size)
     b = load_image_channel("{}/{}_blue.png".format(base_dir, id), image_size)
     y = load_image_channel("{}/{}_yellow.png".format(base_dir, id), image_size)
-    return np.stack([r, g, b, y], axis=0)
+    return np.stack([r, g, b, y], axis=2)
 
 
 def load_image_channel(file_path, image_size):
@@ -139,6 +139,7 @@ def load_image_channel(file_path, image_size):
 
 
 def image_to_tensor(image):
+    image = image.transpose(2, 0, 1)
     return torch.from_numpy(image / 255.).float()
 
 
