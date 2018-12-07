@@ -1,43 +1,20 @@
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 
 class FocalLoss(nn.Module):
-    def __init__(self, gamma=2, size_average=True):
+    def __init__(self, gamma=2):
         super().__init__()
         self.gamma = gamma
-        self.size_average = size_average
 
-    def forward(self, logit, target):
-        target = target.view(-1, 1).long()
+    def forward(self, input, target):
+        assert target.size() == input.size(), \
+            "Target size ({}) must be the same as input size ({})".format(target.size(), input.size())
 
-        if self.weight is None:
-            self.weight = torch.FloatTensor([1] * 28).cuda()
+        max_val = (-input).clamp(min=0)
+        loss = input - input * target + max_val + ((-max_val).exp() + (-input - max_val).exp()).log()
 
-        prob = F.sigmoid(logit)
-        prob = prob.view(-1, 1)
-        prob = torch.cat((1 - prob, prob), 1)
-        select = torch.FloatTensor(len(prob), 2).zero_().cuda()
-        select.scatter_(1, target, 1.)
+        invprobs = F.logsigmoid(-input * (target * 2.0 - 1.0))
+        loss = (invprobs * self.gamma).exp() * loss
 
-        self.weight = self.weight.view(-1, 1)
-        self.weight = torch.gather(self.weight, 0, target)
-
-        prob = (prob * select).sum(1).view(-1, 1)
-        prob = torch.clamp(prob, 1e-8, 1 - 1e-8)
-
-        focus = torch.pow((1 - prob), self.gamma)
-        # focus = torch.where(focus < 2.0, focus, torch.zeros(prob.size()).cuda())
-        focus = torch.clamp(focus, 0, 2)
-
-        # FIXME: verify the weight related code
-        # batch_loss = - self.weight * focus * prob.log()
-        batch_loss = -focus * prob.log()
-
-        if self.size_average:
-            loss = batch_loss.mean()
-        else:
-            loss = batch_loss
-
-        return loss
+        return loss.sum(dim=1).mean()
