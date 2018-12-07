@@ -32,6 +32,7 @@
 * save the val/test predictions
 * treat problem as image segmentation with green channel as mask
 * use adap optimizer w/o fiddling around on the lr
+* use the green layer for attention
 
 
 ### Challenges

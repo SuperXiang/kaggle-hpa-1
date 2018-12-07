@@ -229,9 +229,12 @@ def main():
         model.load_state_dict(torch.load("{}/model.pth".format(output_dir), map_location=device))
         optimizer = create_optimizer(optimizer_type, model, lr_max)
         if os.path.isfile("{}/optimizer.pth".format(output_dir)):
-            optimizer.load_state_dict(torch.load("{}/optimizer.pth".format(output_dir)))
-            adjust_initial_learning_rate(optimizer, lr_max)
-            adjust_learning_rate(optimizer, lr_max)
+            try:
+                optimizer.load_state_dict(torch.load("{}/optimizer.pth".format(output_dir)))
+                adjust_initial_learning_rate(optimizer, lr_max)
+                adjust_learning_rate(optimizer, lr_max)
+            except:
+                log("Failed to load the optimizer weights")
     else:
         model = create_model(type=model_type, num_classes=28).to(device)
         optimizer = create_optimizer(optimizer_type, model, lr_max)
