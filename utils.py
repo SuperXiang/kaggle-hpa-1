@@ -2,6 +2,7 @@ import argparse
 import glob
 import os
 
+import numpy as np
 from sklearn.model_selection import StratifiedKFold
 from torch import nn
 
@@ -64,6 +65,19 @@ def check_model_improved(old_score, new_score, threshold=1e-4):
 
 def list_sorted_model_files(base_dir):
     return sorted(glob.glob("{}/model-*.pth".format(base_dir)), key=lambda e: int(os.path.basename(e)[6:-4]))
+
+
+def calculate_balance_weights(df, target_df, num_classes):
+    counts = np.zeros(num_classes)
+    for target in df.Target:
+        counts[np.asarray(target)] += 1
+
+    median_count = np.median(counts)
+    class_weights = np.asarray([median_count / c for c in counts])
+
+    weights = [np.max(class_weights[np.asarray(target)]) for target in target_df.Target]
+
+    return weights, class_weights.tolist()
 
 
 def log(*args):

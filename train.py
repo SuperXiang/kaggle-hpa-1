@@ -21,7 +21,7 @@ from dataset import TrainDataset, TrainData, TestData, TestDataset
 from metrics import FocalLoss, f1_score, f1_score_from_probs, F1Loss
 from models import ResNet, Ensemble, SimpleCnn, InceptionV2
 from utils import get_learning_rate, str2bool, adjust_learning_rate, adjust_initial_learning_rate, \
-    list_sorted_model_files, check_model_improved, log_args, log
+    list_sorted_model_files, check_model_improved, log_args, log, calculate_balance_weights
 
 cudnn.enabled = True
 cudnn.benchmark = True
@@ -29,8 +29,8 @@ cudnn.benchmark = True
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 CLASS_FREQUENCIES = [
-    12885.0, 1254.0, 3621.0, 1561.0, 1858.0, 2513.0, 1008.0, 2822.0, 53.0, 45.0, 28.0, 1093.0, 688.0, 537.0, 1066.0,
-    21.0, 530.0, 210.0, 902.0, 1482.0, 172.0, 3777.0, 802.0, 2965.0, 322.0, 8228.0, 328.0, 11.0
+    12885, 1254, 3621, 1561, 1858, 2513, 1008, 2822, 53, 45, 28, 1093, 688, 537, 1066,
+    21, 530, 210, 902, 1482, 172, 3777, 802, 2965, 322, 8228, 328, 11
 ]
 
 CLASS_WEIGHTS = [
@@ -163,24 +163,11 @@ def calculate_best_threshold(predictions, targets):
     targets_t = torch.tensor(targets)
 
     thresholds = np.linspace(0, 1, 51)
-    scores = [f1_score_from_probs(predictions_t, targets_t, threshold=t) for t in thresholds]
+    scores = [f1_score_from_probs(predictions_t, targets_t, threshold=t).item() for t in thresholds]
 
     best_score_index = np.argmax(scores)
 
     return thresholds[best_score_index], scores[best_score_index], scores
-
-
-def calculate_balance_weights(df, target_df, num_classes):
-    counts = np.zeros(num_classes)
-    for target in df.Target:
-        counts[np.asarray(target)] += 1
-
-    median_count = np.median(counts)
-    class_weights = np.asarray([median_count / c for c in counts])
-
-    weights = [np.max(class_weights[np.asarray(target)]) for target in target_df.Target]
-
-    return weights, class_weights.tolist()
 
 
 def main():
@@ -233,9 +220,8 @@ def main():
     train_set = TrainDataset(train_data.train_set_df, input_dir, 28, image_size, augment)
 
     balance_weights, balance_class_weights = calculate_balance_weights(train_data.df, train_data.train_set_df, 28)
-    print("balance_class_weights: {}".format(balance_class_weights))
-
     train_set_sampler = WeightedRandomSampler(balance_weights, len(balance_weights))
+
     train_set_data_loader = DataLoader(
         train_set,
         batch_size=batch_size,
@@ -512,7 +498,7 @@ if __name__ == "__main__":
     argparser.add_argument("--sgdr_cycle_epochs", default=5, type=int)
     argparser.add_argument("--sgdr_cycle_epochs_mult", default=1.0, type=float)
     argparser.add_argument("--sgdr_cycle_end_prolongation", default=0, type=int)
-    argparser.add_argument("--sgdr_cycle_end_patience", default=2, type=int)
+    argparser.add_argument("--sgdr_cycle_end_patience", default=0, type=int)
     argparser.add_argument("--max_sgdr_cycles", default=None, type=int)
 
     main()
