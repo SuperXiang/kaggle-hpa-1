@@ -31,6 +31,7 @@
 * add lr finder mode to lr scheduling
 * save the val/test predictions
 * treat problem as image segmentation with green channel as mask
+* use adap optimizer w/o fiddling around on the lr
 
 
 ### Challenges
