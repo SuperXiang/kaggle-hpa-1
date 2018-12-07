@@ -16,8 +16,8 @@ class F1Loss(nn.Module):
         l = targets
         if self.weight is not None:
             weights = self.weight.expand(batch_size, -1)
-            p *= weights
-            l *= weights
+            p = p * weights
+            l = l * weights
 
         num_pos = torch.sum(p, 1) + epsilon
         num_pos_hat = torch.sum(l, 1) + epsilon
