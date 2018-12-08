@@ -486,7 +486,7 @@ if __name__ == "__main__":
     argparser.add_argument("--batch_iterations", default=1, type=int)
     argparser.add_argument("--test_size", default=0.1, type=float)
     argparser.add_argument("--fold", default=None, type=int)
-    argparser.add_argument("--num_workers", default=32, type=int)
+    argparser.add_argument("--num_workers", default=16, type=int)
     argparser.add_argument("--pin_memory", default=True, type=str2bool)
     argparser.add_argument("--lr_scheduler", default="cosine_annealing")
     argparser.add_argument("--lr_patience", default=3, type=int)
