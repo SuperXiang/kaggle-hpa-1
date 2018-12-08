@@ -66,9 +66,10 @@ def evaluate(model, data_loader, criterion):
     model.eval()
 
     loss_sum_t = zero_item_tensor()
-    score_sum_t = zero_item_tensor()
     step_count = 0
 
+    all_predictions = []
+    all_targets = []
     with torch.no_grad():
         for batch in data_loader:
             images, categories = \
@@ -80,12 +81,15 @@ def evaluate(model, data_loader, criterion):
             loss = criterion(prediction_logits, categories)
 
             loss_sum_t += loss
-            score_sum_t += f1_score(prediction_logits, categories)
 
             step_count += 1
 
+            predictions = torch.sigmoid(prediction_logits).cpu().data.numpy()
+            all_predictions.extend(predictions)
+            all_targets.extend(categories.cpu().data.numpy())
+
     loss_avg = loss_sum_t.item() / step_count
-    score_avg = score_sum_t.item() / step_count
+    score_avg = f1_score_from_probs(all_predictions, all_targets)
 
     return loss_avg, score_avg
 
