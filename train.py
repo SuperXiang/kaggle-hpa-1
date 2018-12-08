@@ -89,7 +89,7 @@ def evaluate(model, data_loader, criterion):
             all_targets.extend(categories.cpu().data.numpy())
 
     loss_avg = loss_sum_t.item() / step_count
-    score_avg = f1_score_from_probs(all_predictions, all_targets)
+    score_avg = f1_score_from_probs(torch.tensor(all_predictions), torch.tensor(all_targets))
 
     return loss_avg, score_avg
 
