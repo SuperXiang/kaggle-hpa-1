@@ -14,6 +14,8 @@
 * focal loss: https://github.com/Prakashvanapalli/av_mckinesy_recommendation_challenge/blob/master/func.py#L55
 * https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/72534
 * https://arxiv.org/abs/1703.04782
+* https://www.kaggle.com/rafjaa/resampling-strategies-for-imbalanced-datasets
+* https://imbalanced-learn.org/en/stable/index.html
 
 
 ### Ideas

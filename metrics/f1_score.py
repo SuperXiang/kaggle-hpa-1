@@ -1,18 +1,12 @@
 import torch
+from sklearn.metrics import f1_score as skl_f1_score
 
 
-def f1_score(prediction_logits, targets, threshold=0.5, epsilon=1e-7):
+def f1_score(prediction_logits, targets, threshold=0.5):
     predictions = torch.sigmoid(prediction_logits)
-    return f1_score_from_probs(predictions, targets, threshold, epsilon)
+    return f1_score_from_probs(predictions, targets, threshold)
 
 
-def f1_score_from_probs(predictions, targets, threshold=0.5, epsilon=1e-7):
-    positives = (predictions > threshold).float()
-    true_positives = positives * targets
-
-    precision = true_positives.sum(dim=1) / (positives.sum(dim=1) + epsilon)
-    recall = true_positives.sum(dim=1) / targets.sum(dim=1)
-
-    score = 2 * (precision * recall) / (precision + recall + epsilon)
-
-    return score.mean()
+def f1_score_from_probs(predictions, targets, threshold=0.5):
+    binary_predictions = (predictions > threshold).float()
+    return skl_f1_score(targets, binary_predictions, average="macro")
