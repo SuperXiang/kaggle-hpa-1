@@ -94,11 +94,11 @@ def evaluate(model, data_loader, criterion):
     return loss_avg, score_avg
 
 
-def create_criterion(loss_type):
+def create_criterion(loss_type, focal_loss_gamma):
     if loss_type == "bce":
         criterion = nn.BCEWithLogitsLoss()
     elif loss_type == "focal":
-        criterion = FocalLoss(gamma=2)
+        criterion = FocalLoss(gamma=focal_loss_gamma)
     elif loss_type == "f1":
         criterion = F1Loss()
     else:
@@ -202,6 +202,7 @@ def main():
     lr_max_decay = args.lr_max_decay
     optimizer_type = args.optimizer
     loss_type = args.loss
+    focal_loss_gamma = args.focal_loss_gamma
     use_class_weights = args.use_class_weights
     model_type = args.model
     patience = args.patience
@@ -301,7 +302,7 @@ def main():
 
     train_start_time = time.time()
 
-    criterion = create_criterion(loss_type)
+    criterion = create_criterion(loss_type, focal_loss_gamma)
 
     for epoch in range(epochs_to_train):
         epoch_start_time = time.time()
@@ -498,6 +499,7 @@ if __name__ == "__main__":
     argparser.add_argument("--patience", default=5, type=int)
     argparser.add_argument("--optimizer", default="sgd")
     argparser.add_argument("--loss", default="focal")
+    argparser.add_argument("--focal_loss_gamma", default="focal")
     argparser.add_argument("--use_class_weights", default=False, type=str2bool)
     argparser.add_argument("--sgdr_cycle_epochs", default=5, type=int)
     argparser.add_argument("--sgdr_cycle_epochs_mult", default=1.0, type=float)
