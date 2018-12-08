@@ -229,8 +229,8 @@ def main():
     train_set_data_loader = DataLoader(
         train_set,
         batch_size=batch_size,
-        shuffle=False,
-        sampler=train_set_sampler,
+        shuffle=True,
+        sampler=None,
         num_workers=num_workers,
         pin_memory=pin_memory)
 
