@@ -184,6 +184,7 @@ def main():
     output_dir = args.output_dir
     base_model_dir = args.base_model_dir
     image_size = args.image_size
+    crop_images = args.crop_images
     augment = args.augment
     use_progressive_image_sizes = args.use_progressive_image_sizes
     progressive_image_size_min = args.progressive_image_size_min
@@ -219,7 +220,7 @@ def main():
 
     train_data = TrainData(input_dir)
 
-    train_set = TrainDataset(train_data.train_set_df, input_dir, 28, image_size, augment)
+    train_set = TrainDataset(train_data.train_set_df, input_dir, 28, image_size, crop_images, augment)
 
     balance_weights, balance_class_weights = calculate_balance_weights(train_data.df, train_data.train_set_df, 28)
     train_set_sampler = WeightedRandomSampler(balance_weights, len(balance_weights))
@@ -232,7 +233,7 @@ def main():
         num_workers=num_workers,
         pin_memory=pin_memory)
 
-    val_set = TrainDataset(train_data.val_set_df, input_dir, 28, image_size, False)
+    val_set = TrainDataset(train_data.val_set_df, input_dir, 28, image_size, crop_images, False)
     val_set_data_loader = \
         DataLoader(val_set, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=pin_memory)
 
@@ -485,6 +486,7 @@ if __name__ == "__main__":
     argparser.add_argument("--output_dir", default="/artifacts")
     argparser.add_argument("--base_model_dir", default=None)
     argparser.add_argument("--image_size", default=256, type=int)
+    argparser.add_argument("--crop_images", default=False, type=str2bool)
     argparser.add_argument("--augment", default=True, type=str2bool)
     argparser.add_argument("--use_progressive_image_sizes", default=False, type=str2bool)
     argparser.add_argument("--progressive_image_size_min", default=32, type=int)

@@ -34,12 +34,13 @@ class TrainData:
 
 
 class TrainDataset(Dataset):
-    def __init__(self, df, data_dir, num_categories, image_size, augment, normalize_images=True):
+    def __init__(self, df, data_dir, num_categories, image_size, crop_images, augment, normalize_images=True):
         super().__init__()
         self.df = df
         self.data_dir = data_dir
         self.num_categories = num_categories
         self.image_size = image_size
+        self.crop_images = crop_images
         self.augment = augment
         self.normalize_images = normalize_images
         self.augmentor = iaa.Sequential([
@@ -68,8 +69,11 @@ class TrainDataset(Dataset):
         id = self.df.index[index]
         categories = self.df.iloc[index].Target
 
-        image = load_image(self.data_dir + "/train", id, self.image_size)
-        # image = random_crop_image_to_size(image, self.image_size)
+        if self.crop_images:
+            image = load_image(self.data_dir + "/train", id, 512)
+            image = random_crop_image_to_size(image, self.image_size)
+        else:
+            image = load_image(self.data_dir + "/train", id, self.image_size)
 
         if self.augment:
             image = self.augmentor.augment_image(image)
@@ -100,11 +104,12 @@ class TestData:
 
 
 class TestDataset(Dataset):
-    def __init__(self, df, data_dir, image_size, normalize_images=True):
+    def __init__(self, df, data_dir, image_size, crop_images, normalize_images=True):
         super().__init__()
         self.df = df
         self.data_dir = data_dir
         self.image_size = image_size
+        self.crop_images = crop_images
         self.normalize_images = normalize_images
 
     def __len__(self):
@@ -113,8 +118,11 @@ class TestDataset(Dataset):
     def __getitem__(self, index):
         id = self.df.index[index]
 
-        image = load_image(self.data_dir + "/test", id, self.image_size)
-        # image = random_crop_image_to_size(image, self.image_size)
+        if self.crop_images:
+            image = load_image(self.data_dir + "/test", id, 512)
+            image = random_crop_image_to_size(image, self.image_size)
+        else:
+            image = load_image(self.data_dir + "/test", id, self.image_size)
 
         image_t = image_to_tensor(image)
 
