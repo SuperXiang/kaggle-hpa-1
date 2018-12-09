@@ -18,7 +18,7 @@ from torch.utils.data import DataLoader
 from torch.utils.data.sampler import WeightedRandomSampler
 
 from dataset import TrainDataset, TrainData, TestData, TestDataset
-from metrics import FocalLoss, f1_score, f1_score_from_probs, F1Loss
+from metrics import FocalLoss, f1_score_from_probs, F1Loss
 from models import ResNet, Ensemble, SimpleCnn, InceptionV2
 from utils import get_learning_rate, str2bool, adjust_learning_rate, adjust_initial_learning_rate, \
     list_sorted_model_files, check_model_improved, log_args, log, calculate_balance_weights
@@ -321,7 +321,6 @@ def main():
         model.train()
 
         train_loss_sum_t = zero_item_tensor()
-        train_score_sum_t = zero_item_tensor()
 
         epoch_batch_iter_count = 0
 
@@ -329,6 +328,8 @@ def main():
             new_lr = lr_max * 0.5 ** (sgdr_cycle_epochs - min(sgdr_cycle_epochs, sgdr_iterations / epoch_iterations))
             adjust_learning_rate(optimizer, new_lr)
 
+        all_predictions = []
+        all_targets = []
         for b, batch in enumerate(train_set_data_loader):
             images, categories = \
                 batch[0].to(device, non_blocking=True), \
@@ -347,7 +348,8 @@ def main():
 
             with torch.no_grad():
                 train_loss_sum_t += loss
-                train_score_sum_t += f1_score(prediction_logits, categories)
+                all_predictions.extend(torch.sigmoid(prediction_logits).cpu().data.numpy())
+                all_targets.extend(categories.cpu().data.numpy())
 
             if (b + 1) % batch_iterations == 0 or (b + 1) == len(train_set_data_loader):
                 optimizer.step()
@@ -359,7 +361,7 @@ def main():
             optim_summary_writer.add_scalar("lr", get_learning_rate(optimizer), batch_count + 1)
 
         train_loss_avg = train_loss_sum_t.item() / epoch_batch_iter_count
-        train_score_avg = train_score_sum_t.item() / epoch_batch_iter_count
+        train_score_avg = f1_score_from_probs(torch.tensor(all_predictions), torch.tensor(all_targets))
 
         val_loss_avg, val_score_avg = evaluate(model, val_set_data_loader, criterion)
 
@@ -378,6 +380,8 @@ def main():
         if model_improved:
             torch.save(model.state_dict(), "{}/model.pth".format(output_dir))
             torch.save(optimizer.state_dict(), "{}/optimizer.pth".format(output_dir))
+            np.save("{}/train_predictions.npy".format(output_dir), all_predictions)
+            np.save("{}/train_targets.npy".format(output_dir), all_targets)
             global_val_score_best_avg = val_score_avg
             epoch_of_last_improval = epoch
             ckpt_saved = True
