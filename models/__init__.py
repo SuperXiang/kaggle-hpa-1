@@ -5,5 +5,5 @@ from .inceptionv2 import InceptionV2
 from .mobilenetv2 import MobileNetV2
 from .nasnet_wrapper import NasNet
 from .resnet import ResNet
-from .senet_wrapper import SeNet
+from .senet import SeNet
 from .simple_cnn import SimpleCnn
