@@ -3,7 +3,7 @@ from .drn_wrapper import Drn
 from .ensemble import Ensemble
 from .inceptionv2 import InceptionV2
 from .mobilenetv2 import MobileNetV2
-from .nasnet_wrapper import NasNet
+from .nasnet import NasNet
 from .resnet import ResNet
 from .senet import SeNet
 from .simple_cnn import SimpleCnn
