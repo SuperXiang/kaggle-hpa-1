@@ -18,7 +18,7 @@ from torch.utils.data import DataLoader
 from torch.utils.data.sampler import WeightedRandomSampler
 
 from dataset import TrainDataset, TrainData, TestData, TestDataset
-from metrics import FocalLoss, f1_score_from_probs, F1Loss
+from metrics import FocalLoss, f1_score_from_probs, F1Loss, CombinedLoss
 from models import ResNet, Ensemble, SimpleCnn, InceptionV2, SeNet
 from utils import get_learning_rate, str2bool, adjust_learning_rate, adjust_initial_learning_rate, \
     list_sorted_model_files, check_model_improved, log_args, log, calculate_balance_weights
@@ -103,6 +103,8 @@ def create_criterion(loss_type, weight, focal_loss_gamma):
         criterion = FocalLoss(gamma=focal_loss_gamma)
     elif loss_type == "f1":
         criterion = F1Loss(weight=weight)
+    elif loss_type == "focal_f1":
+        criterion = CombinedLoss(FocalLoss(gamma=focal_loss_gamma), F1Loss(weight=weight), alpha=0.5)
     else:
         raise Exception("Unsupported loss type: '{}".format(loss_type))
     return criterion
