@@ -37,6 +37,7 @@
 * use adap optimizer w/o fiddling around on the lr
 * use the green layer for attention
 * check how many combinations of predictions there are -> do some grouping?
+* check model performance when training only on the green channel
 
 
 ### Challenges

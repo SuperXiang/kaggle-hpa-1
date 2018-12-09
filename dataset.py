@@ -68,8 +68,8 @@ class TrainDataset(Dataset):
         id = self.df.index[index]
         categories = self.df.iloc[index].Target
 
-        image = load_image(self.data_dir + "/train", id, 512)
-        image = random_crop_image_to_size(image, self.image_size)
+        image = load_image(self.data_dir + "/train", id, self.image_size)
+        # image = random_crop_image_to_size(image, self.image_size)
 
         if self.augment:
             image = self.augmentor.augment_image(image)
@@ -113,8 +113,8 @@ class TestDataset(Dataset):
     def __getitem__(self, index):
         id = self.df.index[index]
 
-        image = load_image(self.data_dir + "/test", id, 512)
-        image = random_crop_image_to_size(image, self.image_size)
+        image = load_image(self.data_dir + "/test", id, self.image_size)
+        # image = random_crop_image_to_size(image, self.image_size)
 
         image_t = image_to_tensor(image)
 
