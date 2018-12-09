@@ -15,7 +15,7 @@ class SeNet(nn.Module):
         else:
             raise Exception("Unsupported senet model type: '{}".format(type))
 
-        senet_layer0_children = self.senet.layer0.children()
+        senet_layer0_children = list(self.senet.layer0.children())
         conv1.weight.data[:, 0:3, :, :] = senet_layer0_children[0].weight.data
         self.senet.layer0 = nn.Sequential(*([conv1] + senet_layer0_children[1:]))
 
