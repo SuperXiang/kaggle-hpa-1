@@ -19,7 +19,7 @@ from torch.utils.data.sampler import WeightedRandomSampler
 
 from dataset import TrainDataset, TrainData, TestData, TestDataset
 from metrics import FocalLoss, f1_score_from_probs, F1Loss
-from models import ResNet, Ensemble, SimpleCnn, InceptionV2
+from models import ResNet, Ensemble, SimpleCnn, InceptionV2, SeNet
 from utils import get_learning_rate, str2bool, adjust_learning_rate, adjust_initial_learning_rate, \
     list_sorted_model_files, check_model_improved, log_args, log, calculate_balance_weights
 
@@ -50,6 +50,8 @@ def create_model(type, num_classes):
         model = SimpleCnn(num_classes=num_classes)
     elif type in ["resnet18", "resnet34", "resnet50"]:
         model = ResNet(type=type, num_classes=num_classes)
+    elif type in ["seresnext50", "senet154"]:
+        model = SeNet(type=type, num_classes=num_classes)
     elif type == "inceptionv2":
         model = InceptionV2(num_classes=num_classes)
     else:
