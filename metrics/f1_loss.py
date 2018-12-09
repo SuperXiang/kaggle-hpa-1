@@ -4,8 +4,9 @@ import torch.nn.functional as F
 
 
 class F1Loss(nn.Module):
-    def __init__(self):
+    def __init__(self, weight=None):
         super().__init__()
+        self.weight = weight
 
     def forward(self, logits, targets):
         epsilon = 1e-6

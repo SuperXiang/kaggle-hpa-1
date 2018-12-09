@@ -94,13 +94,13 @@ def evaluate(model, data_loader, criterion):
     return loss_avg, score_avg
 
 
-def create_criterion(loss_type, focal_loss_gamma):
+def create_criterion(loss_type, weight, focal_loss_gamma):
     if loss_type == "bce":
-        criterion = nn.BCEWithLogitsLoss()
+        criterion = nn.BCEWithLogitsLoss(weight=weight)
     elif loss_type == "focal":
         criterion = FocalLoss(gamma=focal_loss_gamma)
     elif loss_type == "f1":
-        criterion = F1Loss()
+        criterion = F1Loss(weight=weight)
     else:
         raise Exception("Unsupported loss type: '{}".format(loss_type))
     return criterion
@@ -175,8 +175,6 @@ def calculate_best_threshold(predictions, targets):
 
 
 def main():
-    global CLASS_WEIGHTS_TENSOR
-
     args = argparser.parse_args()
     log_args(args)
 
@@ -211,9 +209,6 @@ def main():
     sgdr_cycle_end_prolongation = args.sgdr_cycle_end_prolongation
     sgdr_cycle_end_patience = args.sgdr_cycle_end_patience
     max_sgdr_cycles = args.max_sgdr_cycles
-
-    if not use_class_weights:
-        CLASS_WEIGHTS_TENSOR = None
 
     if optimizer_type == "adam":
         lr_scheduler_type = "adam"
@@ -302,7 +297,8 @@ def main():
 
     train_start_time = time.time()
 
-    criterion = create_criterion(loss_type, focal_loss_gamma)
+    loss_weight = CLASS_WEIGHTS_TENSOR if use_class_weights else None
+    criterion = create_criterion(loss_type, loss_weight, focal_loss_gamma)
 
     for epoch in range(epochs_to_train):
         epoch_start_time = time.time()
