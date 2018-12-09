@@ -455,6 +455,9 @@ def main():
     model.load_state_dict(torch.load("{}/model.pth".format(output_dir), map_location=device))
 
     val_predictions, val_targets = predict(model, val_set_data_loader)
+    np.save("{}/val_predictions.npy".format(output_dir), val_predictions)
+    np.save("{}/val_targets.npy".format(output_dir), val_targets)
+
     best_threshold, best_threshold_score, all_threshold_scores = calculate_best_threshold(val_predictions, val_targets)
     log("All threshold scores: {}".format(all_threshold_scores))
     log("Best threshold / score: {} / {}".format(best_threshold, best_threshold_score))
@@ -464,9 +467,12 @@ def main():
     test_set_data_loader = \
         DataLoader(test_set, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=pin_memory)
 
-    submission_df = test_data.test_set_df.copy()
     test_predictions, _ = predict(model, test_set_data_loader)
+    np.save("{}/test_predictions.npy".format(output_dir), test_predictions)
+
     predicted_categories = calculate_categories_from_predictions(test_predictions, threshold=best_threshold)
+
+    submission_df = test_data.test_set_df.copy()
     submission_df["Predicted"] = [" ".join(map(str, pc)) for pc in predicted_categories]
     submission_df.to_csv("{}/submission.csv".format(output_dir))
 
