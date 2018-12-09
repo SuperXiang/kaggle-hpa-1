@@ -68,7 +68,8 @@ class TrainDataset(Dataset):
         id = self.df.index[index]
         categories = self.df.iloc[index].Target
 
-        image = load_image(self.data_dir + "/train", id, self.image_size)
+        image = load_image(self.data_dir + "/train", id, 512)
+        image = random_crop_image_to_size(image, self.image_size)
 
         if self.augment:
             image = self.augmentor.augment_image(image)
@@ -112,7 +113,8 @@ class TestDataset(Dataset):
     def __getitem__(self, index):
         id = self.df.index[index]
 
-        image = load_image(self.data_dir + "/test", id, self.image_size)
+        image = load_image(self.data_dir + "/test", id, 512)
+        image = random_crop_image_to_size(image, self.image_size)
 
         image_t = image_to_tensor(image)
 
@@ -139,6 +141,20 @@ def load_image_channel(file_path, image_size):
     if channel.shape[0] != image_size:
         channel = cv2.resize(channel, (image_size, image_size), interpolation=cv2.INTER_AREA)
     return channel
+
+
+def random_crop_image_to_size(image, target_size):
+    size = image.shape[0]
+
+    dx = np.random.randint(0, size - target_size + 1)
+    dy = np.random.randint(0, size - target_size + 1)
+
+    cropped_image = image[dx:dx + target_size, dy:dy + target_size, :]
+
+    assert cropped_image.shape[0] == target_size and cropped_image.shape[1] == target_size, \
+        "unexpected size of cropped image: {}".format(cropped_image.shape)
+
+    return cropped_image
 
 
 def image_to_tensor(image):
