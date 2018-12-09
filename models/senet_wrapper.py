@@ -1,8 +1,6 @@
-import torch
 from torch import nn
 
 from models.senet import se_resnet50, se_resnet101, se_resnet152, se_resnext50_32x4d, se_resnext101_32x4d, senet154
-from .common import ExpandChannels2d
 
 
 class SeNet(nn.Module):
@@ -11,14 +9,6 @@ class SeNet(nn.Module):
 
         if type == "seresnext50":
             self.senet = se_resnext50_32x4d(pretrained="imagenet")
-
-            # layer0_modules = [
-            #     ('conv1', self.senet.layer0.conv1),
-            #     ('bn1', self.senet.layer0.bn1),
-            #     ('relu1', self.senet.layer0.relu1),
-            # ]
-            # self.layer0 = nn.Sequential(OrderedDict(layer0_modules))
-
             self.layer0 = self.senet.layer0
         elif type == "seresnext101":
             self.senet = se_resnext101_32x4d(pretrained="imagenet")
@@ -38,11 +28,8 @@ class SeNet(nn.Module):
         else:
             raise Exception("Unsupported senet model type: '{}".format(type))
 
-        self.expand_channels = ExpandChannels2d(3)
-        self.bn = nn.BatchNorm2d(3)
-
         self.avg_pool = nn.AdaptiveAvgPool2d(output_size=1)
-        self.dropout = nn.Dropout(0.2)
+        self.dropout = nn.Dropout(0.5)
         self.last_linear = nn.Linear(2048, num_classes)
 
     def features(self, x):
@@ -62,8 +49,6 @@ class SeNet(nn.Module):
         return x
 
     def forward(self, x):
-        x = self.expand_channels(x)
-        x = self.bn(x)
         x = self.features(x)
         x = self.logits(x)
         return x
