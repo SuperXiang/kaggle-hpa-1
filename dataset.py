@@ -82,8 +82,8 @@ class TrainDataset(Dataset):
         if self.normalize_images:
             image_t = normalize(
                 image_t,
-                mean=(0.0526298, 0.0526298, 0.0526298, 0.0526298),
-                std=(0.1122266, 0.1122266, 0.1122266, 0.1122266)
+                mean=(0.0804419, 0.0526298, 0.0547470, 0.0827089),
+                std=(0.1496247, 0.1122266, 0.1560370, 0.1496669)
             )
 
         return image_t, categories_t
@@ -121,18 +121,18 @@ class TestDataset(Dataset):
         if self.normalize_images:
             image_t = normalize(
                 image_t,
-                mean=(0.0526298, 0.0526298, 0.0526298, 0.0526298),
-                std=(0.1122266, 0.1122266, 0.1122266, 0.1122266)
+                mean=(0.0804419, 0.0526298, 0.0547470, 0.0827089),
+                std=(0.1496247, 0.1122266, 0.1560370, 0.1496669)
             )
 
         return (image_t,)
 
 
 def load_image(base_dir, id, image_size):
-    r = load_image_channel("{}/{}_green.png".format(base_dir, id), image_size)
+    r = load_image_channel("{}/{}_red.png".format(base_dir, id), image_size)
     g = load_image_channel("{}/{}_green.png".format(base_dir, id), image_size)
-    b = load_image_channel("{}/{}_green.png".format(base_dir, id), image_size)
-    y = load_image_channel("{}/{}_green.png".format(base_dir, id), image_size)
+    b = load_image_channel("{}/{}_blue.png".format(base_dir, id), image_size)
+    y = load_image_channel("{}/{}_yellow.png".format(base_dir, id), image_size)
     return np.stack([r, g, b, y], axis=2)
 
 
