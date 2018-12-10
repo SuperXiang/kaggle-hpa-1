@@ -468,7 +468,7 @@ def main():
     log("Best threshold / score: {} / {}".format(best_threshold, best_threshold_score))
 
     test_data = TestData(input_dir)
-    test_set = TestDataset(test_data.test_set_df, input_dir, image_size)
+    test_set = TestDataset(test_data.test_set_df, input_dir, image_size, crop_images)
     test_set_data_loader = \
         DataLoader(test_set, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=pin_memory)
 
