@@ -207,6 +207,7 @@ def main():
     loss_type = args.loss
     focal_loss_gamma = args.focal_loss_gamma
     use_class_weights = args.use_class_weights
+    use_weighted_sampling = args.use_weighted_sampling
     model_type = args.model
     patience = args.patience
     sgdr_cycle_epochs = args.sgdr_cycle_epochs
@@ -230,8 +231,8 @@ def main():
     train_set_data_loader = DataLoader(
         train_set,
         batch_size=batch_size,
-        shuffle=True,
-        sampler=None,
+        shuffle=False if use_weighted_sampling else True,
+        sampler=train_set_sampler if use_weighted_sampling else None,
         num_workers=num_workers,
         pin_memory=pin_memory)
 
@@ -513,6 +514,7 @@ if __name__ == "__main__":
     argparser.add_argument("--loss", default="focal")
     argparser.add_argument("--focal_loss_gamma", default=2.0, type=float)
     argparser.add_argument("--use_class_weights", default=False, type=str2bool)
+    argparser.add_argument("--use_weighted_sampling", default=False, type=str2bool)
     argparser.add_argument("--sgdr_cycle_epochs", default=5, type=int)
     argparser.add_argument("--sgdr_cycle_epochs_mult", default=1.0, type=float)
     argparser.add_argument("--sgdr_cycle_end_prolongation", default=0, type=int)
